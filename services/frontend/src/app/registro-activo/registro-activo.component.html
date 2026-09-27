@@ -1,0 +1,91 @@
+<div class="layout">
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i class="ti ti-package" style="font-size:14px" aria-hidden="true"></i>
+        Activos fijos <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>
+        <span>Registrar nuevo activo</span>
+      </div>
+      <div class="top-btns">
+        <button type="button" class="btn">Cancelar</button>
+        <button type="button" class="btn primary"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar</button>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <!--Identificación -->
+      <section class="section">
+        <div class="sec-title"><i class="ti ti-qrcode" aria-hidden="true"></i> Identificación patrimonial</div>
+        <div class="grid3">
+          <div class="field">
+            <label for="numPatrimonial">N° patrimonial <span class="req">*</span></label>
+            <input id="numPatrimonial" type="text" class="readonly" readonly>
+          </div>
+          <div class="field">
+            <label for="numSerie">N° de serie</label>
+            <input id="numSerie" type="text">
+          </div>
+
+        </div>
+      </section>
+
+      <!--Descripción -->
+      <section class="section">
+        <div class="sec-title"><i class="ti ti-file-description" aria-hidden="true"></i> Descripción del bien</div>
+        <div class="grid2" style="margin-bottom:12px">
+          <div class="field">
+            <label for="nombreBien">Nombre del bien <span class="req">*</span></label>
+            <input id="nombreBien" type="text">
+          </div>
+          <div class="field">
+            <label for="marcaModelo">Marca / Modelo</label>
+            <input id="marcaModelo" type="text">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label>Estado de conservación <span class="req">*</span></label>
+          <div class="status-pills">
+            <div
+              *ngFor="let estado of estadosConservacion"
+              class="sp"
+              [class.sel]="estadoSeleccionado === estado"
+              (click)="seleccionarEstado(estado)">
+              {{ estado }}
+            </div>
+          </div>
+        </div>
+        <div class="ai-row">
+          <div class="ai-ico"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+          <div style="flex:1;min-width:0">
+            <div class="ai-tag">Sugerencia Ollama IA</div>
+            <div class="ai-val">Equipos computacionales — Notebooks y portátiles</div>
+          </div>
+          <button type="button" class="ai-btn">Aceptar</button>
+        </div>
+      </section>
+
+      <!--Asignación -->
+      <section class="section">
+        <div class="sec-title"><i class="ti ti-building" aria-hidden="true"></i> Asignación</div>
+        <div class="grid3">
+          <div class="field">
+            <label for="establecimiento">Establecimiento <span class="req">*</span></label>
+            <select id="establecimiento">
+              <option>Bodega central SLEP</option>
+              <option>Esc. Los Andes</option>
+              <option>Liceo Bicentenario</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dependencia">Dependencia / Sala</label>
+            <input id="dependencia" type="text">
+          </div>
+          <div class="field">
+            <label for="custodio">Custodio responsable</label>
+            <input id="custodio" type="text">
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
