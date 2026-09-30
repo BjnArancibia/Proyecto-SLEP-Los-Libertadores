@@ -1,4 +1,16 @@
 /* Estilos específicos del componente de registro de activos */
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 .layout {
   min-height: 100vh;
 }
@@ -15,7 +27,7 @@
   background: #fff;
   padding: 16px 24px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .breadcrumb {
@@ -68,7 +80,7 @@
   background: #fff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .section {
