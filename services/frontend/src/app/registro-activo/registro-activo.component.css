@@ -249,3 +249,237 @@
     align-items: flex-start;
   }
 }
+
+/* Sección de etiqueta */
+.grid3-etiqueta {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.field-etiqueta-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label-invisible {
+  font-size: 13px;
+  font-weight: 500;
+  color: transparent;
+  user-select: none;
+}
+
+/* Botón "Ver etiqueta" */
+.btn-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-etiqueta:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.btn-etiqueta:disabled {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .grid3-etiqueta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .field-etiqueta-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid3-etiqueta {
+    grid-template-columns: 1fr;
+  }
+  .label-invisible {
+    display: none;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  animation: slideUp 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Encabezado del modal */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Tarjeta de la etiqueta */
+.etiqueta-card {
+  margin: 20px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Encabezado institucional */
+.etiqueta-header {
+  background: #1e293b;
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.etiqueta-org {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.etiqueta-tipo {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.75;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Cuerpo: QR + datos */
+.etiqueta-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 16px 8px 16px;
+}
+
+.etiqueta-qr {
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.etiqueta-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.dato-row {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  align-items: baseline;
+}
+
+.dato-label {
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.dato-val {
+  font-weight: 500;
+  color: #1e293b;
+  word-break: break-all;
+}
+
+/* Código de barras */
+.etiqueta-barcode {
+  padding: 8px 16px 16px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.etiqueta-barcode svg {
+  max-width: 100%;
+}

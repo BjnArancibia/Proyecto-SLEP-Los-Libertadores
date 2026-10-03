@@ -54,16 +54,33 @@
           <i class="ti ti-qrcode" aria-hidden="true"></i> Identificación
           patrimonial
         </div>
-        <div class="grid3">
+        <div class="grid3-etiqueta">
           <div class="field">
             <label for="numPatrimonial"
               >N° patrimonial <span class="req">*</span></label
             >
-            <input id="numPatrimonial" formControlName="numero_patrimonial" type="text" />
+            <input
+              id="numPatrimonial"
+              formControlName="numero_patrimonial"
+              type="text"
+            />
           </div>
           <div class="field">
             <label for="numSerie">N° de serie</label>
             <input id="numSerie" formControlName="numero_serie" type="text" />
+          </div>
+          <div class="field field-etiqueta-btn">
+            <label class="label-invisible">Etiqueta</label>
+            <button
+              type="button"
+              class="btn-etiqueta"
+              [disabled]="!botonEtiquetaHabilitado"
+              (click)="abrirModal()"
+              title="Disponible tras guardar el activo"
+            >
+              <i class="ti ti-qrcode" aria-hidden="true"></i>
+              Ver etiqueta
+            </button>
           </div>
         </div>
       </section>
@@ -83,7 +100,11 @@
           </div>
           <div class="field">
             <label for="marcaModelo">Marca / Modelo</label>
-            <input id="marcaModelo" formControlName="marca_modelo" type="text" />
+            <input
+              id="marcaModelo"
+              formControlName="marca_modelo"
+              type="text"
+            />
           </div>
         </div>
         <div class="field" style="margin-bottom: 12px">
@@ -141,4 +162,70 @@
       </section>
     </div>
   </main>
+
+  <!-- MODAL ETIQUETA  -->
+  <div
+    *ngIf="mostrarModal"
+    class="modal-overlay"
+    (click)="cerrarModal()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-titulo"
+  >
+    <!-- Caja del modal para que click adentro no cierre -->
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <!-- Encabezado del modal -->
+      <div class="modal-header">
+        <span id="modal-titulo" class="modal-title">
+          <i class="ti ti-qrcode" aria-hidden="true"></i>
+          Etiqueta de Activo Fijo
+        </span>
+        <button
+          type="button"
+          class="modal-close"
+          (click)="cerrarModal()"
+          aria-label="Cerrar"
+        >
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Tarjeta de la etiqueta -->
+      <div class="etiqueta-card">
+        <!-- Encabezado institucional -->
+        <div class="etiqueta-header">
+          <span class="etiqueta-org">SLEP LOS LIBERTADORES</span>
+          <span class="etiqueta-tipo">ACTIVO FIJO</span>
+        </div>
+
+        <!-- Cuerpo: QR + datos -->
+        <div class="etiqueta-body">
+          <canvas #qrCanvas class="etiqueta-qr"></canvas>
+          <div class="etiqueta-datos" *ngIf="ultimoActivoGuardado">
+            <div class="dato-row">
+              <span class="dato-label">N° Patrimonial:</span>
+              <span class="dato-val">{{
+                ultimoActivoGuardado.numero_patrimonial
+              }}</span>
+            </div>
+            <div class="dato-row">
+              <span class="dato-label">Serie:</span>
+              <span class="dato-val">{{
+                ultimoActivoGuardado.numero_serie
+              }}</span>
+            </div>
+            <div class="dato-row">
+              <span class="dato-label">Resp:</span>
+              <span class="dato-val">{{ ultimoActivoGuardado.custodio }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Código de barras -->
+        <div class="etiqueta-barcode">
+          <svg #barcodesvg></svg>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
