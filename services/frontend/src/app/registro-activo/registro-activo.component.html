@@ -18,11 +18,31 @@
         <span>{{ item.label }}</span>
       </button>
     </nav>
-    <div class="sidebar-foot">
+    <div
+      class="sidebar-foot"
+      (click)="alternarMenuUsuario($event)"
+      [class.active]="mostrarMenuUsuario"
+      role="button"
+      tabindex="0"
+      title="Opciones de cuenta"
+    >
       <div class="avatar">{{ currentUser.initials }}</div>
       <div class="user-meta">
         <div class="foot-name">{{ currentUser.name }}</div>
         <div class="foot-role">{{ currentUser.role }}</div>
+      </div>
+      <i class="ti ti-chevron-up foot-arrow" [class.rotated]="mostrarMenuUsuario" aria-hidden="true"></i>
+
+      <!-- Menú emergente al hacer clic en el perfil -->
+      <div class="user-menu-popover" *ngIf="mostrarMenuUsuario" (click)="$event.stopPropagation()">
+        <div class="user-menu-info">
+          <span class="user-menu-name">{{ currentUser.name }}</span>
+          <span class="user-menu-email" *ngIf="currentUser.email">{{ currentUser.email }}</span>
+        </div>
+        <button type="button" class="btn-logout" (click)="cerrarSesion()">
+          <i class="ti ti-logout" aria-hidden="true"></i>
+          <span>Cerrar sesión</span>
+        </button>
       </div>
     </div>
   </aside>

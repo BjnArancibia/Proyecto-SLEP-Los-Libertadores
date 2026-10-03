@@ -15,6 +15,7 @@ import {
 } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RegistroActivoTemplate } from "./registro-activo.template";
+import { AuthService } from "../services/auth.service";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 
@@ -44,11 +45,16 @@ export class RegistroActivoComponent
   @ViewChild("qrCanvas") qrCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild("barcodesvg") barcodesvg!: ElementRef<SVGElement>;
 
+  // Perfil del usuario activo (se completa automáticamente desde AuthService)
   currentUser = {
     initials: "JP",
     name: "Juan Pérez",
     role: "Administrador",
+    email: "",
   };
+
+  // Controla si el menú de perfil / logout está visible
+  mostrarMenuUsuario = false;
 
   navItems = [
     { label: "Panel", icon: "ti ti-layout-dashboard", active: false },
@@ -62,11 +68,14 @@ export class RegistroActivoComponent
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
+    private authService: AuthService,
   ) {
     super();
   }
 
   ngOnInit(): void {
+    this.cargarDatosUsuario();
+
     this.activoForm = this.fb.group({
       numero_patrimonial: ["", Validators.required],
       numero_serie: [""],
@@ -76,6 +85,44 @@ export class RegistroActivoComponent
       dependencia: [""],
       custodio: [""],
     });
+  }
+
+  /** Obtiene la sesión activa y adapta el perfil mostrado en la sidebar */
+  cargarDatosUsuario(): void {
+    const user = this.authService.usuario();
+    if (user) {
+      const rolLabels: Record<string, string> = {
+        ADMIN: "Administrador",
+        ENCARGADO_BODEGA: "Encargado de Bodega",
+        SOLICITANTE: "Solicitante",
+        APROBADOR: "Aprobador",
+      };
+      this.currentUser = {
+        name: `${user.nombre} ${user.apellido}`,
+        initials: `${user.nombre.charAt(0)}${user.apellido.charAt(0)}`.toUpperCase(),
+        role: rolLabels[user.rol] || user.rol,
+        email: user.email,
+      };
+    }
+  }
+
+  /** Alterna la visibilidad del menú de perfil al hacer click */
+  alternarMenuUsuario(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.mostrarMenuUsuario = !this.mostrarMenuUsuario;
+  }
+
+  /** Cierra la sesión activa y redirige al login */
+  cerrarSesion(): void {
+    this.authService.logout();
+  }
+
+  /** Si se hace click fuera del menú de usuario, se cierra */
+  @HostListener("document:click")
+  onDocumentClick(): void {
+    this.mostrarMenuUsuario = false;
   }
 
   setActiveNav(selectedLabel: string) {

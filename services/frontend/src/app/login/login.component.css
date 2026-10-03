@@ -1,0 +1,261 @@
+.login-page {
+  min-height: 100dvh;
+  background-color: #f1f5f9;
+  background-image: radial-gradient(
+    ellipse at 60% 40%,
+    #dbeafe 0%,
+    transparent 65%
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  gap: 16px;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 20px 60px -10px rgba(59, 130, 246, 0.08),
+    0 4px 12px -2px rgba(0, 0, 0, 0.05);
+
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+/* Badge "SLEP Los Libertadores" */
+.institution-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eff6ff; /* Azul muy claro de fondo */
+  color: #3b82f6; /* Azul principal del texto */
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 5px 12px;
+  margin-bottom: 14px;
+}
+
+.institution-badge i {
+  font-size: 14px;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Formulario del login */
+.card-body {
+  padding: 24px 28px;
+}
+
+/* Grupo de campo: label + input + mensaje de error */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  font-size: 14px;
+  color: #1e3a5f;
+  background: #ffffff;
+  border: 1px solid #d1d9e6;
+  border-radius: 8px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field-input::placeholder {
+  color: #b0bdc8;
+}
+
+/* Estilos para focus */
+.field-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Estilos para error */
+.input-wrapper.input-error .field-input {
+  border-color: #ef4444;
+}
+.input-wrapper.input-error .field-input:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+.input-wrapper.input-error .input-icon {
+  color: #ef4444;
+}
+
+.input-wrapper:has(.toggle-password) .field-input {
+  padding-right: 42px;
+}
+
+/* Botón mostrar/ocultar contraseña */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  font-size: 17px;
+  transition: color 0.15s;
+}
+
+.toggle-password:hover {
+  color: #3b82f6;
+}
+
+/* Mensaje de error */
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.field-error i {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Banner de error (credenciales incorrectas) */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+
+.error-banner i {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 11px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+/* Estado de carga: cursor de espera y opacidad reducida */
+.btn-submit.btn-loading {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.spinner {
+  width: 17px;
+  height: 17px;
+  animation: spin 0.8s linear infinite;
+  color: #fff;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+@media (max-width: 480px) {
+  .login-card {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .card-header,
+  .card-body {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+

@@ -1,0 +1,122 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="card-header">
+      <div class="institution-badge">
+        <!-- Ícono del edificio -->
+        <i class="ti ti-building-community" aria-hidden="true"></i>
+        SLEP Los Libertadores
+      </div>
+      <h1 class="card-title">Gestión Patrimonial</h1>
+      <p class="card-subtitle">
+        Ingresa tus credenciales institucionales para acceder al sistema
+      </p>
+    </div>
+
+    <div class="card-body">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <!-- Campo correo institucional -->
+        <div class="field-group">
+          <label for="email" class="field-label"> Correo institucional </label>
+          <div class="input-wrapper" [class.input-error]="emailInvalido">
+            <i class="ti ti-mail input-icon" aria-hidden="true"></i>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              class="field-input"
+              placeholder="Correo Electrónico"
+              autocomplete="email"
+            />
+          </div>
+          <!-- Mensaje de error en el correo -->
+          @if (emailInvalido) {
+            <span class="field-error" role="alert">
+              <i class="ti ti-alert-circle" aria-hidden="true"></i>
+              @if (loginForm.get("email")?.errors?.["required"]) {
+                El correo es obligatorio.
+              } @else {
+                Ingresa un correo con formato válido (ej: usuario&#64;slep.cl).
+              }
+            </span>
+          }
+        </div>
+
+        <!-- Campo contraseña-->
+        <div class="field-group">
+          <label for="password" class="field-label"> Contraseña </label>
+          <div class="input-wrapper" [class.input-error]="passwordInvalido">
+            <i class="ti ti-lock input-icon" aria-hidden="true"></i>
+            <input
+              id="password"
+              [type]="mostrarPassword() ? 'text' : 'password'"
+              formControlName="password"
+              class="field-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <!-- Botón para alternar visibilidad de la contraseña -->
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="alternarPassword()"
+              [attr.aria-label]="
+                mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+              "
+            >
+              <i
+                [class]="mostrarPassword() ? 'ti ti-eye-off' : 'ti ti-eye'"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </div>
+          @if (passwordInvalido) {
+            <span class="field-error" role="alert">
+              <i class="ti ti-alert-circle" aria-hidden="true"></i>
+              La contraseña es obligatoria.
+            </span>
+          }
+        </div>
+
+        <!-- Mensaje de error (credenciales incorrectas) -->
+
+        @if (mensajeError()) {
+          <div class="error-banner" role="alert">
+            <i class="ti ti-shield-x" aria-hidden="true"></i>
+            {{ mensajeError() }}
+          </div>
+        }
+
+        <!-- Botón de envío -->
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="cargando()"
+          [class.btn-loading]="cargando()"
+        >
+          @if (cargando()) {
+            <svg
+              class="spinner"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-dasharray="32"
+                stroke-linecap="round"
+              />
+            </svg>
+            Autenticando...
+          } @else {
+            <i class="ti ti-login" aria-hidden="true"></i>
+            Ingresar
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
