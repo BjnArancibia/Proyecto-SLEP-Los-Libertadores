@@ -6,7 +6,7 @@ import {
   FormGroup,
   Validators,
 } from "@angular/forms";
-import { AuthService } from "../services/auth.service";
+import { AuthService, USUARIOS_MOCK } from "../services/auth.service";
 
 @Component({
   selector: "app-login",
@@ -23,6 +23,7 @@ export class LoginComponent {
   mensajeError = signal("");
 
   loginForm: FormGroup;
+  usuariosMock = USUARIOS_MOCK;
 
   constructor(
     private fb: FormBuilder,
@@ -33,6 +34,11 @@ export class LoginComponent {
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required]],
     });
+  }
+
+  iniciarComoMock(usuarioId: number): void {
+    this.authService.loginMock(usuarioId);
+    this.router.navigate(["/registro-activo"]);
   }
 
   alternarPassword(): void {

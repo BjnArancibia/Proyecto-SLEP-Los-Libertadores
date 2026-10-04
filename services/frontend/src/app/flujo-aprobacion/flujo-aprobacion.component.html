@@ -1,0 +1,339 @@
+<div class="flujo-container">
+  <!-- Barra de pruebas -->
+  <div class="dev-banner">
+    <div class="dev-left">
+      <span class="dev-badge"
+        ><i class="ti ti-shield-check"></i> RF-03 Segregación:</span
+      >
+      <span class="dev-label">Simular sesión como:</span>
+      <div class="dev-users">
+        @for (u of usuariosMock; track u.id) {
+          <button
+            class="btn-mock-user"
+            [class.active]="usuarioActual()?.id === u.id"
+            (click)="cambiarPerfilPrueba(u.id)"
+            [title]="u.rol + ' - ' + u.establecimientoNombre"
+          >
+            {{ u.nombre }} ({{
+              u.rol === "ENCARGADO_BODEGA" ? "BODEGA" : u.rol
+            }})
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="dev-right">
+      <span class="dev-label">Solicitud:</span>
+      <select
+        class="dev-select"
+        [ngModel]="solicitudActual()?.id"
+        (ngModelChange)="seleccionarSolicitud($event)"
+      >
+        @for (s of todasSolicitudes(); track s.id) {
+          <option [value]="s.id">
+            {{ s.id }} ({{ s.tipo }} - Solicitó: {{ s.solicitanteNombre }})
+          </option>
+        }
+      </select>
+      <button
+        class="btn-reset"
+        (click)="reiniciarDemo()"
+        title="Reiniciar datos de prueba"
+      >
+        <i class="ti ti-refresh"></i> Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensaje de feedback -->
+  @if (mensajeFeedback()) {
+    <div class="feedback-toast" [class]="mensajeFeedback()?.tipo">
+      <i
+        [class]="
+          mensajeFeedback()?.tipo === 'exito'
+            ? 'ti ti-circle-check'
+            : 'ti ti-alert-triangle'
+        "
+      ></i>
+      <span>{{ mensajeFeedback()?.texto }}</span>
+    </div>
+  }
+
+  <!-- Topbar -->
+  @if (solicitudActual(); as sol) {
+    <header class="topbar">
+      <div>
+        <div class="t-title">Solicitud #{{ sol.id }}</div>
+        <div class="t-sub">
+          {{ sol.tipo }} de bien patrimonial · {{ sol.fechaCreacion }}
+        </div>
+      </div>
+
+      <span
+        class="pill"
+        [ngClass]="{
+          review: sol.estado === 'PENDIENTE_REVISION',
+          approved: sol.estado === 'APROBADO',
+          rejected: sol.estado === 'RECHAZADO',
+          executed: sol.estado === 'EJECUTADO',
+        }"
+      >
+        @switch (sol.estado) {
+          @case ("PENDIENTE_REVISION") {
+            En revisión
+          }
+          @case ("APROBADO") {
+            Aprobado
+          }
+          @case ("RECHAZADO") {
+            Rechazado
+          }
+          @case ("EJECUTADO") {
+            Ejecutado / Cerrado
+          }
+        }
+      </span>
+    </header>
+
+    <!-- Opciones de acciones-->
+    <section class="content">
+      <div class="stepper">
+        <!-- Paso 1: Solicitud enviada -->
+        <div class="step">
+          <div class="step-circle" [class]="obtenerClasePaso(1, sol.estado)">
+            <i class="ti ti-check" style="font-size: 14px"></i>
+          </div>
+          <div class="step-label">Solicitud enviada</div>
+        </div>
+        <div class="conn" [class]="obtenerClaseConector(1, sol.estado)"></div>
+
+        <!-- Paso 2: Revisión aprobador -->
+        <div class="step">
+          <div class="step-circle" [class]="obtenerClasePaso(2, sol.estado)">
+            @if (sol.estado === "PENDIENTE_REVISION") {
+              2
+            } @else {
+              <i class="ti ti-check" style="font-size: 14px"></i>
+            }
+          </div>
+          <div
+            class="step-label"
+            [class.now]="sol.estado === 'PENDIENTE_REVISION'"
+          >
+            Revisión aprobador
+          </div>
+        </div>
+        <div class="conn" [class]="obtenerClaseConector(2, sol.estado)"></div>
+
+        <!-- Paso 3: Ejecución bodega -->
+        <div class="step">
+          <div class="step-circle" [class]="obtenerClasePaso(3, sol.estado)">
+            @if (sol.estado === "EJECUTADO") {
+              <i class="ti ti-check" style="font-size: 14px"></i>
+            } @else {
+              3
+            }
+          </div>
+          <div class="step-label" [class.now]="sol.estado === 'APROBADO'">
+            Ejecución bodega
+          </div>
+        </div>
+        <div class="conn" [class]="obtenerClaseConector(3, sol.estado)"></div>
+
+        <!-- Paso 4: Cierre y registro -->
+        <div class="step">
+          <div class="step-circle" [class]="obtenerClasePaso(4, sol.estado)">
+            @if (sol.estado === "EJECUTADO") {
+              <i class="ti ti-check" style="font-size: 14px"></i>
+            } @else {
+              4
+            }
+          </div>
+          <div class="step-label" [class.now]="sol.estado === 'EJECUTADO'">
+            Cierre y registro
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del activo-->
+      <div class="card">
+        <div class="card-title">
+          {{ sol.activoNombre }} — {{ sol.activoCodigo }}
+        </div>
+
+        <div class="info-row">
+          <div class="info-cell">
+            <div class="i-label">Origen</div>
+            <div class="i-value">{{ sol.origen }}</div>
+          </div>
+          <div class="info-cell">
+            <div class="i-label">Destino</div>
+            <div class="i-value">{{ sol.destino }}</div>
+          </div>
+          <div class="info-cell">
+            <div class="i-label">Solicitante</div>
+            <div class="i-value">
+              {{ sol.solicitanteNombre }}
+              @if (sol.solicitanteId === usuarioActual()?.id) {
+                <span class="tag-tu">(Tú)</span>
+              }
+            </div>
+          </div>
+          <div class="info-cell">
+            <div class="i-label">Justificación</div>
+            <div class="i-value">{{ sol.justificacion }}</div>
+          </div>
+        </div>
+
+        <!-- Caso 1: Autoaprobación -->
+        @if (validacionSegregacion().esAutoaprobacion) {
+          <div class="warning">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            <span>
+              <strong>Regla de Segregación de Funciones:</strong>
+              El solicitante no puede autoaprobar su propia solicitud. Este
+              registro debe ser resuelto por otro usuario con perfil Aprobador o
+              Administrador.
+            </span>
+          </div>
+        } @else if (
+          !validacionSegregacion().puedeAprobar &&
+          sol.estado === "PENDIENTE_REVISION"
+        ) {
+          <div class="warning info-role">
+            <i class="ti ti-shield-lock" aria-hidden="true"></i>
+            <span>{{ validacionSegregacion().motivoBloqueo }}</span>
+          </div>
+        }
+
+        <!-- Caso 2: Resolución del aprobador -->
+        @if (
+          sol.estado === "PENDIENTE_REVISION" &&
+          validacionSegregacion().puedeAprobar
+        ) {
+          <div class="res-label">Resolución del aprobador</div>
+          <div class="action-area">
+            <textarea
+              rows="3"
+              placeholder="Ingresa una justificación para tu decisión (mínimo 5 caracteres)…"
+              [(ngModel)]="comentarioResolucion"
+            ></textarea>
+            <div class="action-btns">
+              <button
+                class="btn-ok"
+                (click)="aprobar()"
+                [disabled]="comentarioResolucion().trim().length < 5"
+              >
+                <i class="ti ti-circle-check" aria-hidden="true"></i> Aprobar
+              </button>
+              <button
+                class="btn-no"
+                (click)="rechazar()"
+                [disabled]="comentarioResolucion().trim().length < 5"
+              >
+                <i class="ti ti-circle-x" aria-hidden="true"></i> Rechazar
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Caso 3: Aprobado -->
+        @if (sol.estado === "APROBADO") {
+          <div class="banner-status approved-banner">
+            <div class="banner-header">
+              <i class="ti ti-circle-check"></i>
+              <strong>Solicitud Aprobada por {{ sol.aprobadorNombre }}</strong>
+              <span class="banner-date">{{ sol.resolucionFecha }}</span>
+            </div>
+            <p class="banner-comment">"{{ sol.resolucionComentario }}"</p>
+
+            <!-- Acción para Bodega / Admin -->
+            @if (
+              usuarioActual()?.rol === "ENCARGADO_BODEGA" ||
+              usuarioActual()?.rol === "ADMIN"
+            ) {
+              <div class="bodega-action-box">
+                <div class="bodega-hint">
+                  <i class="ti ti-building-warehouse"></i>
+                  Fase 3: Como Encargado de Bodega, confirma la entrega física
+                  del bien para completar el flujo:
+                </div>
+                <button class="btn-bodega-exec" (click)="ejecutarEnBodega()">
+                  <i class="ti ti-package-export"></i> Confirmar Ejecución en
+                  Bodega
+                </button>
+              </div>
+            } @else {
+              <div class="bodega-pending-note">
+                <i class="ti ti-clock"></i> Pendiente de confirmación y entrega
+                por el Encargado de Bodega.
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Caso 4: Rechazado -->
+        @if (sol.estado === "RECHAZADO") {
+          <div class="banner-status rejected-banner">
+            <div class="banner-header">
+              <i class="ti ti-circle-x"></i>
+              <strong>Solicitud Rechazada por {{ sol.aprobadorNombre }}</strong>
+              <span class="banner-date">{{ sol.resolucionFecha }}</span>
+            </div>
+            <p class="banner-comment">
+              Motivo del rechazo: "{{ sol.resolucionComentario }}"
+            </p>
+          </div>
+        }
+
+        <!-- Caso 5: Ejecutado -->
+        @if (sol.estado === "EJECUTADO") {
+          <div class="banner-status executed-banner">
+            <div class="banner-header">
+              <i class="ti ti-circle-check"></i>
+              <strong>Movimiento Completado y Registrado</strong>
+              <span class="banner-date">{{ sol.ejecucionFecha }}</span>
+            </div>
+            <p class="banner-comment">
+              El movimiento patrimonial fue ejecutado físicamente en bodega por
+              {{ sol.ejecutorNombre }} y el activo fue actualizado en el
+              inventario.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Bitácora de la solicitud -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 12px">
+          Bitácora de esta solicitud
+        </div>
+        <div class="logs-container">
+          @for (log of sol.bitacora; track log.id) {
+            <div class="log-row">
+              <div
+                class="log-dot"
+                [ngClass]="{
+                  g: log.tipoPunto === 'verde',
+                  b: log.tipoPunto === 'azul',
+                  gr: log.tipoPunto === 'gris',
+                  r: log.tipoPunto === 'rojo',
+                }"
+              ></div>
+              <div class="log-content">
+                <div class="log-action">{{ log.accion }}</div>
+                <div class="log-meta">
+                  {{ log.usuarioNombre }}
+                  @if (log.usuarioRol) {
+                    · {{ log.usuarioRol }}
+                  }
+                  · {{ log.fecha }}
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+</div>

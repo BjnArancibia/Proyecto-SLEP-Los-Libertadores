@@ -47,7 +47,13 @@
     </div>
   </aside>
 
-  <main class="main">
+  <!-- VISTA DE APROBACIONES (RF-03) -->
+  <main class="main" *ngIf="opcionActiva === 'Aprobaciones'" style="padding: 0;">
+    <app-flujo-aprobacion></app-flujo-aprobacion>
+  </main>
+
+  <!-- VISTA DE ACTIVOS FIJOS / FORMULARIO -->
+  <main class="main" *ngIf="opcionActiva !== 'Aprobaciones'">
     <header class="topbar">
       <div class="breadcrumb">
         <i class="ti ti-package" style="font-size: 14px" aria-hidden="true"></i>

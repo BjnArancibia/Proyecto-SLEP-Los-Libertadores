@@ -16,13 +16,15 @@ import {
 import { HttpClient } from "@angular/common/http";
 import { RegistroActivoTemplate } from "./registro-activo.template";
 import { AuthService } from "../services/auth.service";
+import { Router } from "@angular/router";
+import { FlujoAprobacionComponent } from "../flujo-aprobacion/flujo-aprobacion.component";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 
 @Component({
   selector: "app-registro-activo",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FlujoAprobacionComponent],
   templateUrl: "./registro-activo.component.html",
   styleUrls: ["./registro-activo.component.css"],
 })
@@ -32,6 +34,9 @@ export class RegistroActivoComponent
 {
   activoForm!: FormGroup;
   apiUrl = "http://127.0.0.1:8000/api/activos";
+
+  // Controla qué vista se muestra en el área principal manteniendo la misma sidebar
+  opcionActiva = 'Activos Fijos';
 
   // Estado de la modal y del botón de etiqueta
   mostrarModal = false;
@@ -45,13 +50,30 @@ export class RegistroActivoComponent
   @ViewChild("qrCanvas") qrCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild("barcodesvg") barcodesvg!: ElementRef<SVGElement>;
 
-  // Perfil del usuario activo (se completa automáticamente desde AuthService)
-  currentUser = {
-    initials: "JP",
-    name: "Juan Pérez",
-    role: "Administrador",
-    email: "",
-  };
+  // Perfil del usuario activo (se completa reactivamente desde AuthService)
+  get currentUser() {
+    const user = this.authService.usuario();
+    if (user) {
+      const rolLabels: Record<string, string> = {
+        ADMIN: "Administrador",
+        ENCARGADO_BODEGA: "Encargado de Bodega",
+        SOLICITANTE: "Solicitante",
+        APROBADOR: "Aprobador",
+      };
+      return {
+        name: `${user.nombre} ${user.apellido}`,
+        initials: `${user.nombre.charAt(0)}${user.apellido.charAt(0)}`.toUpperCase(),
+        role: rolLabels[user.rol] || user.rol,
+        email: user.email,
+      };
+    }
+    return {
+      initials: "JP",
+      name: "Juan Pérez",
+      role: "Administrador",
+      email: "",
+    };
+  }
 
   // Controla si el menú de perfil / logout está visible
   mostrarMenuUsuario = false;
@@ -69,13 +91,12 @@ export class RegistroActivoComponent
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
+    private router: Router,
   ) {
     super();
   }
 
   ngOnInit(): void {
-    this.cargarDatosUsuario();
-
     this.activoForm = this.fb.group({
       numero_patrimonial: ["", Validators.required],
       numero_serie: [""],
@@ -85,25 +106,6 @@ export class RegistroActivoComponent
       dependencia: [""],
       custodio: [""],
     });
-  }
-
-  /** Obtiene la sesión activa y adapta el perfil mostrado en la sidebar */
-  cargarDatosUsuario(): void {
-    const user = this.authService.usuario();
-    if (user) {
-      const rolLabels: Record<string, string> = {
-        ADMIN: "Administrador",
-        ENCARGADO_BODEGA: "Encargado de Bodega",
-        SOLICITANTE: "Solicitante",
-        APROBADOR: "Aprobador",
-      };
-      this.currentUser = {
-        name: `${user.nombre} ${user.apellido}`,
-        initials: `${user.nombre.charAt(0)}${user.apellido.charAt(0)}`.toUpperCase(),
-        role: rolLabels[user.rol] || user.rol,
-        email: user.email,
-      };
-    }
   }
 
   /** Alterna la visibilidad del menú de perfil al hacer click */
@@ -129,6 +131,8 @@ export class RegistroActivoComponent
     this.navItems.forEach((item) => {
       item.active = item.label === selectedLabel;
     });
+
+    this.opcionActiva = selectedLabel;
   }
 
   guardarActivo() {
