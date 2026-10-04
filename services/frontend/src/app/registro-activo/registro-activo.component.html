@@ -52,8 +52,13 @@
     <app-flujo-aprobacion></app-flujo-aprobacion>
   </main>
 
+  <!-- VISTA DE BODEGA / KARDEX (RF-04) -->
+  <main class="main" *ngIf="opcionActiva === 'Bodega'" style="padding: 0;">
+    <app-kardex></app-kardex>
+  </main>
+
   <!-- VISTA DE ACTIVOS FIJOS / FORMULARIO -->
-  <main class="main" *ngIf="opcionActiva !== 'Aprobaciones'">
+  <main class="main" *ngIf="opcionActiva === 'Activos Fijos'">
     <header class="topbar">
       <div class="breadcrumb">
         <i class="ti ti-package" style="font-size: 14px" aria-hidden="true"></i>
@@ -184,6 +189,187 @@
             <label for="custodio">Custodio responsable</label>
             <input id="custodio" formControlName="custodio" type="text" />
           </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA DE PANEL (DASHBOARD) -->
+  <main class="main" *ngIf="opcionActiva === 'Panel'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i class="ti ti-layout-dashboard" style="font-size: 14px" aria-hidden="true"></i>
+        <span>Panel General de Gestión Patrimonial</span>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-chart-bar" aria-hidden="true"></i> Indicadores Generales — SLEP Los Libertadores
+        </div>
+        <div class="grid3">
+          <div class="field card-kpi" (click)="setActiveNav('Activos Fijos')">
+            <div class="kpi-icon"><i class="ti ti-package"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-num">148</span>
+              <span class="kpi-lbl">Activos Fijos Registrados</span>
+            </div>
+          </div>
+          <div class="field card-kpi" (click)="setActiveNav('Bodega')">
+            <div class="kpi-icon kpi-blue"><i class="ti ti-building-warehouse"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-num">122</span>
+              <span class="kpi-lbl">Stock Central (Papel Bond 75g)</span>
+            </div>
+          </div>
+          <div class="field card-kpi" (click)="setActiveNav('Aprobaciones')">
+            <div class="kpi-icon kpi-amber"><i class="ti ti-checklist"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-num">2</span>
+              <span class="kpi-lbl">Aprobaciones Pendientes (RF-03)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-bolt" aria-hidden="true"></i> Accesos Rápidos
+        </div>
+        <div class="grid3">
+          <button type="button" class="btn primary" (click)="setActiveNav('Activos Fijos')">
+            <i class="ti ti-plus"></i> Registrar Activo Fijo
+          </button>
+          <button type="button" class="btn" (click)="setActiveNav('Bodega')">
+            <i class="ti ti-building-warehouse"></i> Ver Kardex de Bodega
+          </button>
+          <button type="button" class="btn" (click)="setActiveNav('Aprobaciones')">
+            <i class="ti ti-checklist"></i> Resolver Aprobaciones
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA DE SOLICITUDES -->
+  <main class="main" *ngIf="opcionActiva === 'Solicitudes'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i class="ti ti-arrow-transfer-up" style="font-size: 14px" aria-hidden="true"></i>
+        <span>Solicitudes de Movimiento Patrimonial</span>
+      </div>
+      <div class="top-btns">
+        <button type="button" class="btn primary" (click)="setActiveNav('Aprobaciones')">
+          <i class="ti ti-checklist"></i> Ir a Bandeja de Aprobaciones
+        </button>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-list" aria-hidden="true"></i> Solicitudes Registradas en el Sistema
+        </div>
+        <div class="table-solicitudes-wrap">
+          <table class="panel-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th>Activo</th>
+                <th>Origen → Destino</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>SOL-2026-0421</strong></td>
+                <td><span class="badge-tag tag-traslado">Traslado</span></td>
+                <td>Escritorio ejecutivo ergonómico</td>
+                <td>Esc. Los Andes → Esc. El Palqui</td>
+                <td>Carmen Tapia</td>
+                <td><span class="badge-tag tag-pendiente">Pendiente Aprobación</span></td>
+                <td>
+                  <button type="button" class="btn-sm" (click)="setActiveNav('Aprobaciones')">Revisar</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>SOL-2026-0422</strong></td>
+                <td><span class="badge-tag tag-baja">Baja</span></td>
+                <td>Servidor ProLiant DL380 G9</td>
+                <td>Bodega Central → RAEE</td>
+                <td>Pedro Henríquez</td>
+                <td><span class="badge-tag tag-pendiente">Pendiente Aprobación</span></td>
+                <td>
+                  <button type="button" class="btn-sm" (click)="setActiveNav('Aprobaciones')">Revisar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA DE BITÁCORA -->
+  <main class="main" *ngIf="opcionActiva === 'Bitácora'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i class="ti ti-clipboard-list" style="font-size: 14px" aria-hidden="true"></i>
+        <span>Bitácora de Trazabilidad y Auditoría</span>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-history" aria-hidden="true"></i> Eventos Recientes del Sistema
+        </div>
+        <div class="table-solicitudes-wrap">
+          <table class="panel-table">
+            <thead>
+              <tr>
+                <th>Fecha / Hora</th>
+                <th>Módulo</th>
+                <th>Evento / Acción</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>08/09/2026 14:33</td>
+                <td><span class="badge-tag tag-bodega">Bodega</span></td>
+                <td>Despacho #F-0521 (Salida -20 Papel bond hacia Liceo Bicentenario)</td>
+                <td>C. Tapia</td>
+                <td>Encargado de Bodega</td>
+              </tr>
+              <tr>
+                <td>08/09/2026 11:30</td>
+                <td><span class="badge-tag tag-aprobaciones">Aprobaciones</span></td>
+                <td>Bloqueo de autoaprobación SOL-2026-0422 aplicado por sistema</td>
+                <td>Sistema de Seguridad</td>
+                <td>Segregación RF-03</td>
+              </tr>
+              <tr>
+                <td>08/09/2026 09:14</td>
+                <td><span class="badge-tag tag-solicitudes">Solicitudes</span></td>
+                <td>Creación de Solicitud de Traslado SOL-2026-0421</td>
+                <td>Carmen Tapia</td>
+                <td>Solicitante</td>
+              </tr>
+              <tr>
+                <td>05/09/2026 09:11</td>
+                <td><span class="badge-tag tag-bodega">Bodega</span></td>
+                <td>Traslado #F-0498 (-15 Papel bond hacia Esc. El Palqui)</td>
+                <td>R. Fuentes</td>
+                <td>Encargado de Bodega</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </div>

@@ -18,13 +18,14 @@ import { RegistroActivoTemplate } from "./registro-activo.template";
 import { AuthService } from "../services/auth.service";
 import { Router } from "@angular/router";
 import { FlujoAprobacionComponent } from "../flujo-aprobacion/flujo-aprobacion.component";
+import { KardexComponent } from "../kardex/kardex.component";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 
 @Component({
   selector: "app-registro-activo",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FlujoAprobacionComponent],
+  imports: [CommonModule, ReactiveFormsModule, FlujoAprobacionComponent, KardexComponent],
   templateUrl: "./registro-activo.component.html",
   styleUrls: ["./registro-activo.component.css"],
 })
@@ -106,6 +107,26 @@ export class RegistroActivoComponent
       dependencia: [""],
       custodio: [""],
     });
+
+    // Detectar qué opción debe estar activa a partir de la URL
+    const currentUrl = this.router.url.toLowerCase();
+    if (currentUrl.includes('/bodega') || currentUrl.includes('/kardex')) {
+      this.opcionActiva = 'Bodega';
+    } else if (currentUrl.includes('/aprobaciones') || currentUrl.includes('/flujo-aprobacion')) {
+      this.opcionActiva = 'Aprobaciones';
+    } else if (currentUrl.includes('/panel')) {
+      this.opcionActiva = 'Panel';
+    } else if (currentUrl.includes('/solicitudes')) {
+      this.opcionActiva = 'Solicitudes';
+    } else if (currentUrl.includes('/bitacora')) {
+      this.opcionActiva = 'Bitácora';
+    } else {
+      this.opcionActiva = 'Activos Fijos';
+    }
+
+    this.navItems.forEach((item) => {
+      item.active = item.label === this.opcionActiva;
+    });
   }
 
   /** Alterna la visibilidad del menú de perfil al hacer click */
@@ -133,6 +154,20 @@ export class RegistroActivoComponent
     });
 
     this.opcionActiva = selectedLabel;
+
+    // Mapear cada opción a su ruta correspondiente en el historial
+    const routeMap: Record<string, string> = {
+      'Panel': '/panel',
+      'Activos Fijos': '/registro-activo',
+      'Bodega': '/bodega',
+      'Solicitudes': '/solicitudes',
+      'Aprobaciones': '/aprobaciones',
+      'Bitácora': '/bitacora',
+    };
+
+    if (routeMap[selectedLabel]) {
+      window.history.pushState({}, '', routeMap[selectedLabel]);
+    }
   }
 
   guardarActivo() {
