@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kardex;
+use App\Services\AuditoriaService;
 use Illuminate\Http\Request;
 
 class KardexController extends Controller
@@ -25,10 +26,40 @@ class KardexController extends Controller
             'cantidad' => 'integer',
             'saldo' => 'integer',
             'estado_stock' => 'required|string',
-            'documento_respaldo' => 'nullable|string'
+            'documento_respaldo' => 'nullable|string',
+            'justificacion' => 'nullable|string',
         ]);
 
         $kardex = Kardex::create($data);
+
+        // Registrar auditoría del movimiento de existencias
+        $saldoPrevio = ($data['saldo'] ?? 0) - ($data['cantidad'] ?? 0);
+        $decision = ($data['tipo_movimiento'] === 'AJUSTE') ? 'AJUSTADO' : 'EJECUTADO';
+        $user = $request->user();
+
+        AuditoriaService::registrar([
+            'folio' => $data['documento_respaldo'] ?: ('KD-' . $kardex->id),
+            'usuario_id' => $user?->id,
+            'usuario_nombre' => $user ? ($user->name . ' ' . ($user->apellido ?? '')) : $data['responsable'],
+            'usuario_perfil' => $user?->rol ?? 'ENCARGADO_BODEGA',
+            'modulo' => 'EXISTENCIAS',
+            'accion' => 'Movimiento de Existencias: ' . $data['tipo_movimiento'],
+            'decision' => $decision,
+            'justificacion' => $data['justificacion'] ?? ('Movimiento de bodega ' . $data['tipo_movimiento'] . ' (' . $data['origen_destino'] . ')'),
+            'valores_anteriores' => [
+                'activo_codigo' => $data['activo_codigo'],
+                'saldo_stock' => $saldoPrevio,
+                'estado_stock' => $data['estado_stock'],
+            ],
+            'valores_posteriores' => [
+                'activo_codigo' => $data['activo_codigo'],
+                'cantidad_operacion' => $data['cantidad'] ?? 0,
+                'saldo_stock' => $data['saldo'] ?? 0,
+                'estado_stock' => $data['estado_stock'],
+                'documento_respaldo' => $data['documento_respaldo'] ?? null,
+            ],
+        ]);
+
         return response()->json($kardex, 201);
     }
 

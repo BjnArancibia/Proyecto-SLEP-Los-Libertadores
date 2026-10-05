@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Movimiento;
 use App\Models\BitacoraMovimiento;
+use App\Services\AuditoriaService;
 use Illuminate\Http\Request;
 
 class MovimientoController extends Controller
@@ -37,22 +38,94 @@ class MovimientoController extends Controller
             'activo_nombre' => $data['activo_nombre'],
             'origen' => $data['origen'],
             'destino' => $data['destino'],
-            'solicitante_id' => $user->id,
-            'solicitante_nombre' => $user->name . ' ' . $user->apellido,
-            'solicitante_rol' => $user->rol,
-            'solicitante_establecimiento' => $user->establecimiento_nombre,
+            'solicitante_id' => $user?->id ?? 1,
+            'solicitante_nombre' => $user ? ($user->name . ' ' . $user->apellido) : 'Usuario Solicitante',
+            'solicitante_rol' => $user?->rol ?? 'SOLICITANTE',
+            'solicitante_establecimiento' => $user?->establecimiento_nombre ?? 'Escuela Los Andes',
             'justificacion' => $data['justificacion'] ?? null,
         ]);
 
         BitacoraMovimiento::create([
             'movimiento_id' => $movimiento->id,
             'accion' => 'Solicitud creada y enviada a revisión',
-            'usuario_nombre' => $user->name . ' ' . $user->apellido,
-            'usuario_rol' => $user->rol,
+            'usuario_nombre' => $movimiento->solicitante_nombre,
+            'usuario_rol' => $movimiento->solicitante_rol,
             'tipo_punto' => 'verde'
         ]);
 
+        // Transacción auditable de creación de solicitud
+        AuditoriaService::registrar([
+            'folio' => $movimiento->codigo_solicitud,
+            'usuario_id' => $user?->id,
+            'usuario_nombre' => $movimiento->solicitante_nombre,
+            'usuario_perfil' => $movimiento->solicitante_rol,
+            'modulo' => 'SOLICITUDES',
+            'accion' => 'Creación de Solicitud de ' . ucfirst(strtolower($data['tipo'])),
+            'decision' => 'PENDIENTE_REVISION',
+            'justificacion' => $data['justificacion'] ?? 'Solicitud ingresada en sistema',
+            'valores_anteriores' => null,
+            'valores_posteriores' => [
+                'codigo_solicitud' => $movimiento->codigo_solicitud,
+                'tipo' => $movimiento->tipo,
+                'estado' => $movimiento->estado,
+                'activo_codigo' => $movimiento->activo_codigo,
+                'activo_nombre' => $movimiento->activo_nombre,
+                'origen' => $movimiento->origen,
+                'destino' => $movimiento->destino,
+                'solicitante' => $movimiento->solicitante_nombre,
+            ],
+        ]);
+
         return response()->json($movimiento->load('bitacora'), 201);
+    }
+
+    public function resolver(Request $request, $id)
+    {
+        $movimiento = Movimiento::findOrFail($id);
+        $decision = $request->input('decision', 'APROBADO'); // APROBADO o RECHAZADO
+        $comentario = $request->input('comentario', 'Resolución de solicitud de movimiento');
+        $user = $request->user();
+        $userName = $user ? ($user->name . ' ' . $user->apellido) : 'Pedro Henríquez';
+        $userRol = $user?->rol ?? 'APROBADOR';
+
+        $valoresAnteriores = [
+            'codigo_solicitud' => $movimiento->codigo_solicitud,
+            'estado' => $movimiento->estado,
+        ];
+
+        $movimiento->estado = ($decision === 'APROBADO') ? 'APROBADO' : 'RECHAZADO';
+        $movimiento->save();
+
+        $valoresPosteriores = [
+            'codigo_solicitud' => $movimiento->codigo_solicitud,
+            'estado' => $movimiento->estado,
+            'aprobador' => $userName,
+            'comentario_resolucion' => $comentario,
+        ];
+
+        BitacoraMovimiento::create([
+            'movimiento_id' => $movimiento->id,
+            'accion' => "Solicitud {$decision} por {$userName}",
+            'usuario_nombre' => $userName,
+            'usuario_rol' => $userRol,
+            'tipo_punto' => ($decision === 'APROBADO') ? 'azul' : 'rojo',
+        ]);
+
+        // Transacción auditable de resolución de solicitud
+        AuditoriaService::registrar([
+            'folio' => $movimiento->codigo_solicitud,
+            'usuario_id' => $user?->id,
+            'usuario_nombre' => $userName,
+            'usuario_perfil' => $userRol,
+            'modulo' => 'SOLICITUDES',
+            'accion' => "Resolución de Solicitud de {$movimiento->tipo}",
+            'decision' => $decision,
+            'justificacion' => $comentario,
+            'valores_anteriores' => $valoresAnteriores,
+            'valores_posteriores' => $valoresPosteriores,
+        ]);
+
+        return response()->json($movimiento->load('bitacora'));
     }
 
     public function reset()

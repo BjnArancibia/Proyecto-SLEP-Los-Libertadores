@@ -7,6 +7,7 @@ import {
   TipoMovimientoKardex,
 } from "../models/kardex.model";
 import { AuthService } from "./auth.service";
+import { BitacoraService } from "./bitacora.service";
 
 const STORAGE_KEY_MOVIMIENTOS = "slep_kardex_movimientos_mock";
 const STORAGE_KEY_PRODUCTO = "slep_kardex_producto_mock";
@@ -181,7 +182,10 @@ export class KardexService {
     return lista;
   });
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private bitacoraService: BitacoraService,
+  ) {
     // Sincronización entre pestañas distintas en tiempo real
     if (typeof window !== "undefined") {
       window.addEventListener("storage", (event) => {
@@ -313,22 +317,57 @@ export class KardexService {
     const nuevaLista = [nuevoMovimiento, ...this._movimientos()];
     this.guardar(nuevaLista);
 
-    // Sincronizar nuevo movimiento con base de datos en backend
-    this.http.post("http://127.0.0.1:8000/api/kardex", {
-      activo_codigo: this._producto().codigo,
-      activo_nombre: this._producto().nombre,
-      fecha_registro: fechaHora,
-      tipo_movimiento: dto.tipo,
-      origen_destino: dto.origenDestino,
-      responsable: responsableNombre,
-      cantidad: cantidadAplicada,
-      saldo: nuevoBalance,
-      estado_stock: nuevoBalance <= this._producto().stockMinimoAlerta ? "CRITICO" : "DISPONIBLE",
-      documento_respaldo: dto.documentoReferencia?.trim() || null
-    }).subscribe({
-      next: () => console.log("Movimiento de kardex persistido en Base de Datos."),
-      error: () => console.warn("Aviso: BD no disponible para persistencia directa de kardex.")
+    // Bitácora Auditable de Transacciones para existencias
+    const decision = dto.tipo === "AJUSTE" ? "AJUSTADO" : "EJECUTADO";
+    this.bitacoraService.registrarTransaccion({
+      folio: dto.documentoReferencia?.trim() || folioGenerado,
+      modulo: "EXISTENCIAS",
+      accion: `Movimiento de Existencias: ${etiquetas[dto.tipo]} (${dto.origenDestino})`,
+      decision: decision,
+      justificacion:
+        dto.observaciones?.trim() ||
+        `Operación de bodega ${etiquetas[dto.tipo]} con destino/origen: ${dto.origenDestino}`,
+      valores_anteriores: {
+        item_codigo: this._producto().codigo,
+        item_nombre: this._producto().nombre,
+        saldo_stock: stockActual,
+      },
+      valores_posteriores: {
+        item_codigo: this._producto().codigo,
+        item_nombre: this._producto().nombre,
+        cantidad_operacion: cantidadAplicada,
+        saldo_stock: nuevoBalance,
+        documento_respaldo: dto.documentoReferencia?.trim() || folioGenerado,
+      },
+      usuario_nombre: responsableNombre,
+      usuario_perfil: responsableRol,
     });
+
+    // Sincronizar nuevo movimiento con base de datos en backend
+    this.http
+      .post("http://127.0.0.1:8000/api/kardex", {
+        activo_codigo: this._producto().codigo,
+        activo_nombre: this._producto().nombre,
+        fecha_registro: fechaHora,
+        tipo_movimiento: dto.tipo,
+        origen_destino: dto.origenDestino,
+        responsable: responsableNombre,
+        cantidad: cantidadAplicada,
+        saldo: nuevoBalance,
+        estado_stock:
+          nuevoBalance <= this._producto().stockMinimoAlerta
+            ? "CRITICO"
+            : "DISPONIBLE",
+        documento_respaldo: dto.documentoReferencia?.trim() || null,
+      })
+      .subscribe({
+        next: () =>
+          console.log("Movimiento de kardex persistido en Base de Datos."),
+        error: () =>
+          console.warn(
+            "Aviso: BD no disponible para persistencia directa de kardex.",
+          ),
+      });
 
     return {
       exito: true,
