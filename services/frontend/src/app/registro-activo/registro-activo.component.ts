@@ -5,6 +5,7 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -16,6 +17,7 @@ import {
 import { HttpClient } from "@angular/common/http";
 import { RegistroActivoTemplate } from "./registro-activo.template";
 import { AuthService } from "../services/auth.service";
+import { MovimientosService } from "../services/movimientos.service";
 import { Router } from "@angular/router";
 import { FlujoAprobacionComponent } from "../flujo-aprobacion/flujo-aprobacion.component";
 import { KardexComponent } from "../kardex/kardex.component";
@@ -92,9 +94,76 @@ export class RegistroActivoComponent
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
+    private movimientosService: MovimientosService,
     private router: Router,
   ) {
     super();
+  }
+
+  // Solicitudes reactivas del sistema (se actualizan automáticamente al aprobar/rechazar)
+  get solicitudes() {
+    return this.movimientosService.solicitudes;
+  }
+
+  get pendientesAprobacion(): number {
+    return this.movimientosService
+      .solicitudes()
+      .filter((s) => s.estado === "PENDIENTE_REVISION").length;
+  }
+
+  revisarSolicitud(solicitudId: string): void {
+    this.movimientosService.seleccionarSolicitud(solicitudId);
+    this.setActiveNav("Aprobaciones");
+  }
+
+  // Notificación reactiva para la vista de solicitudes
+  mensajeFeedback = signal<{ tipo: "exito" | "error"; texto: string } | null>(
+    null,
+  );
+
+  reiniciarSolicitudes(): void {
+    this.movimientosService.reiniciarSolicitudes();
+    this.mensajeFeedback.set({
+      tipo: "exito",
+      texto:
+        "Solicitudes de movimiento reiniciadas correctamente al estado inicial.",
+    });
+    setTimeout(() => {
+      this.mensajeFeedback.set(null);
+    }, 3500);
+  }
+
+  get eventosBitacora() {
+    const eventos: Array<{
+      fecha: string;
+      modulo: string;
+      tagClass: string;
+      accion: string;
+      usuario: string;
+      rol: string;
+    }> = [];
+
+    // Recorrer solicitudes y sus bitácoras
+    this.movimientosService.solicitudes().forEach((s) => {
+      s.bitacora.forEach((b) => {
+        eventos.push({
+          fecha: b.fecha,
+          modulo:
+            b.accion.includes("APROBADA") || b.accion.includes("RECHAZADA")
+              ? "Aprobaciones"
+              : "Solicitudes",
+          tagClass:
+            b.accion.includes("APROBADA") || b.accion.includes("RECHAZADA")
+              ? "tag-aprobaciones"
+              : "tag-solicitudes",
+          accion: `${s.id}: ${b.accion}`,
+          usuario: b.usuarioNombre,
+          rol: b.usuarioRol || "Sistema",
+        });
+      });
+    });
+
+    return eventos;
   }
 
   ngOnInit(): void {

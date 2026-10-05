@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { SolicitudMovimiento, EventoBitacora } from '../models/movimiento.model';
 import { Usuario } from './auth.service';
 
@@ -15,7 +16,7 @@ const SOLICITUDES_INICIALES: SolicitudMovimiento[] = [
     activoNombre: 'Escritorio ejecutivo ergonómico',
     origen: 'Esc. Los Andes',
     destino: 'Esc. El Palqui',
-    solicitanteId: 101, // Carmen Tapia
+    solicitanteId: 1, // Carmen Tapia
     solicitanteNombre: 'Carmen Tapia',
     solicitanteRol: 'Solicitante',
     solicitanteEstablecimiento: 'Escuela Los Andes',
@@ -56,7 +57,7 @@ const SOLICITUDES_INICIALES: SolicitudMovimiento[] = [
     activoNombre: 'Servidor ProLiant DL380 G9',
     origen: 'Bodega Central SLEP',
     destino: 'Baja definitiva / Reciclaje RAEE',
-    solicitanteId: 102, // Creada por Pedro Henríquez (Aprobador) -> Demuestra NO-autoaprobación!
+    solicitanteId: 2, // Creada por Pedro Henríquez (Aprobador) -> Demuestra NO-autoaprobación!
     solicitanteNombre: 'Pedro Henríquez',
     solicitanteRol: 'Aprobador',
     solicitanteEstablecimiento: 'Escuela Los Andes',
@@ -98,6 +99,8 @@ export class MovimientosService {
   // Solicitud activa seleccionada para visualizar en la pantalla
   private _solicitudActivaId = signal<string>('SOL-2026-0421');
   readonly solicitudActivaId = this._solicitudActivaId.asReadonly();
+
+  private http = inject(HttpClient);
 
   constructor() {}
 
@@ -141,7 +144,7 @@ export class MovimientosService {
     }
 
     // 1. Prohibición estricta de autoaprobación
-    if (solicitud.solicitanteId === usuario.id) {
+    if (solicitud.solicitanteId === usuario.id || (solicitud.solicitanteNombre && solicitud.solicitanteNombre.toLowerCase() === `${usuario.nombre} ${usuario.apellido}`.toLowerCase())) {
       return {
         puedeAprobar: false,
         esAutoaprobacion: true,
@@ -303,9 +306,29 @@ export class MovimientosService {
     return { exito: true, mensaje: 'Movimiento ejecutado en bodega y registrado con éxito.' };
   }
 
-  /** Reiniciar a datos mock originales para poder hacer pruebas una y otra vez */
+  /** Reiniciar solicitudes en memoria local, localStorage y BD */
+  reiniciarSolicitudes(): void {
+    const copias: SolicitudMovimiento[] = JSON.parse(
+      JSON.stringify(SOLICITUDES_INICIALES),
+    );
+
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(copias));
+    }
+    this._solicitudes.set(copias);
+    this._solicitudActivaId.set("SOL-2026-0421");
+
+    // Sincronizar reinicio con base de datos en backend
+    this.http.post("http://127.0.0.1:8000/api/movimientos/reset", {}).subscribe({
+      next: () => console.log("Solicitudes reiniciadas en Base de Datos."),
+      error: () =>
+        console.warn(
+          "Aviso: Base de datos no conectada para reset, reiniciado en local.",
+        ),
+    });
+  }
+
   reiniciarDatosMock(): void {
-    localStorage.removeItem(STORAGE_KEY);
-    this._solicitudes.set(SOLICITUDES_INICIALES);
+    this.reiniciarSolicitudes();
   }
 }

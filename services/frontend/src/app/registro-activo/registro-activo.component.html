@@ -31,13 +31,23 @@
         <div class="foot-name">{{ currentUser.name }}</div>
         <div class="foot-role">{{ currentUser.role }}</div>
       </div>
-      <i class="ti ti-chevron-up foot-arrow" [class.rotated]="mostrarMenuUsuario" aria-hidden="true"></i>
+      <i
+        class="ti ti-chevron-up foot-arrow"
+        [class.rotated]="mostrarMenuUsuario"
+        aria-hidden="true"
+      ></i>
 
       <!-- Menú emergente al hacer clic en el perfil -->
-      <div class="user-menu-popover" *ngIf="mostrarMenuUsuario" (click)="$event.stopPropagation()">
+      <div
+        class="user-menu-popover"
+        *ngIf="mostrarMenuUsuario"
+        (click)="$event.stopPropagation()"
+      >
         <div class="user-menu-info">
           <span class="user-menu-name">{{ currentUser.name }}</span>
-          <span class="user-menu-email" *ngIf="currentUser.email">{{ currentUser.email }}</span>
+          <span class="user-menu-email" *ngIf="currentUser.email">{{
+            currentUser.email
+          }}</span>
         </div>
         <button type="button" class="btn-logout" (click)="cerrarSesion()">
           <i class="ti ti-logout" aria-hidden="true"></i>
@@ -48,12 +58,12 @@
   </aside>
 
   <!-- VISTA DE APROBACIONES (RF-03) -->
-  <main class="main" *ngIf="opcionActiva === 'Aprobaciones'" style="padding: 0;">
+  <main class="main" *ngIf="opcionActiva === 'Aprobaciones'" style="padding: 0">
     <app-flujo-aprobacion></app-flujo-aprobacion>
   </main>
 
   <!-- VISTA DE BODEGA / KARDEX (RF-04) -->
-  <main class="main" *ngIf="opcionActiva === 'Bodega'" style="padding: 0;">
+  <main class="main" *ngIf="opcionActiva === 'Bodega'" style="padding: 0">
     <app-kardex></app-kardex>
   </main>
 
@@ -198,7 +208,11 @@
   <main class="main" *ngIf="opcionActiva === 'Panel'">
     <header class="topbar">
       <div class="breadcrumb">
-        <i class="ti ti-layout-dashboard" style="font-size: 14px" aria-hidden="true"></i>
+        <i
+          class="ti ti-layout-dashboard"
+          style="font-size: 14px"
+          aria-hidden="true"
+        ></i>
         <span>Panel General de Gestión Patrimonial</span>
       </div>
     </header>
@@ -206,7 +220,8 @@
     <div class="form-area">
       <section class="section">
         <div class="sec-title">
-          <i class="ti ti-chart-bar" aria-hidden="true"></i> Indicadores Generales — SLEP Los Libertadores
+          <i class="ti ti-chart-bar" aria-hidden="true"></i> Indicadores
+          Generales — SLEP Los Libertadores
         </div>
         <div class="grid3">
           <div class="field card-kpi" (click)="setActiveNav('Activos Fijos')">
@@ -217,17 +232,21 @@
             </div>
           </div>
           <div class="field card-kpi" (click)="setActiveNav('Bodega')">
-            <div class="kpi-icon kpi-blue"><i class="ti ti-building-warehouse"></i></div>
+            <div class="kpi-icon kpi-blue">
+              <i class="ti ti-building-warehouse"></i>
+            </div>
             <div class="kpi-info">
               <span class="kpi-num">122</span>
               <span class="kpi-lbl">Stock Central (Papel Bond 75g)</span>
             </div>
           </div>
           <div class="field card-kpi" (click)="setActiveNav('Aprobaciones')">
-            <div class="kpi-icon kpi-amber"><i class="ti ti-checklist"></i></div>
+            <div class="kpi-icon kpi-amber">
+              <i class="ti ti-checklist"></i>
+            </div>
             <div class="kpi-info">
-              <span class="kpi-num">2</span>
-              <span class="kpi-lbl">Aprobaciones Pendientes (RF-03)</span>
+              <span class="kpi-num">{{ pendientesAprobacion }}</span>
+              <span class="kpi-lbl">Aprobaciones Pendientes</span>
             </div>
           </div>
         </div>
@@ -238,13 +257,21 @@
           <i class="ti ti-bolt" aria-hidden="true"></i> Accesos Rápidos
         </div>
         <div class="grid3">
-          <button type="button" class="btn primary" (click)="setActiveNav('Activos Fijos')">
+          <button
+            type="button"
+            class="btn primary"
+            (click)="setActiveNav('Activos Fijos')"
+          >
             <i class="ti ti-plus"></i> Registrar Activo Fijo
           </button>
           <button type="button" class="btn" (click)="setActiveNav('Bodega')">
             <i class="ti ti-building-warehouse"></i> Ver Kardex de Bodega
           </button>
-          <button type="button" class="btn" (click)="setActiveNav('Aprobaciones')">
+          <button
+            type="button"
+            class="btn"
+            (click)="setActiveNav('Aprobaciones')"
+          >
             <i class="ti ti-checklist"></i> Resolver Aprobaciones
           </button>
         </div>
@@ -256,11 +283,28 @@
   <main class="main" *ngIf="opcionActiva === 'Solicitudes'">
     <header class="topbar">
       <div class="breadcrumb">
-        <i class="ti ti-arrow-transfer-up" style="font-size: 14px" aria-hidden="true"></i>
+        <i
+          class="ti ti-arrow-transfer-up"
+          style="font-size: 14px"
+          aria-hidden="true"
+        ></i>
         <span>Solicitudes de Movimiento Patrimonial</span>
       </div>
       <div class="top-btns">
-        <button type="button" class="btn primary" (click)="setActiveNav('Aprobaciones')">
+        <button
+          type="button"
+          class="btn"
+          (click)="reiniciarSolicitudes()"
+          title="Reiniciar y limpiar solicitudes al estado original"
+        >
+          <i class="ti ti-rotate-2" aria-hidden="true"></i> Reiniciar
+          Solicitudes
+        </button>
+        <button
+          type="button"
+          class="btn primary"
+          (click)="setActiveNav('Aprobaciones')"
+        >
           <i class="ti ti-checklist"></i> Ir a Bandeja de Aprobaciones
         </button>
       </div>
@@ -269,8 +313,32 @@
     <div class="form-area">
       <section class="section">
         <div class="sec-title">
-          <i class="ti ti-list" aria-hidden="true"></i> Solicitudes Registradas en el Sistema
+          <i class="ti ti-list" aria-hidden="true"></i> Solicitudes Registradas
+          en el Sistema
         </div>
+
+        <!-- Notificación visual de reinicio -->
+        @if (mensajeFeedback()) {
+          <div
+            style="
+              margin-bottom: 14px;
+              padding: 10px 16px;
+              border-radius: 8px;
+              font-size: 12.5px;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: #d1fae5;
+              color: #065f46;
+              border: 1px solid #a7f3d0;
+            "
+          >
+            <i class="ti ti-check" aria-hidden="true"></i>
+            <span>{{ mensajeFeedback()!.texto }}</span>
+          </div>
+        }
+
         <div class="table-solicitudes-wrap">
           <table class="panel-table">
             <thead>
@@ -285,28 +353,79 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><strong>SOL-2026-0421</strong></td>
-                <td><span class="badge-tag tag-traslado">Traslado</span></td>
-                <td>Escritorio ejecutivo ergonómico</td>
-                <td>Esc. Los Andes → Esc. El Palqui</td>
-                <td>Carmen Tapia</td>
-                <td><span class="badge-tag tag-pendiente">Pendiente Aprobación</span></td>
-                <td>
-                  <button type="button" class="btn-sm" (click)="setActiveNav('Aprobaciones')">Revisar</button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>SOL-2026-0422</strong></td>
-                <td><span class="badge-tag tag-baja">Baja</span></td>
-                <td>Servidor ProLiant DL380 G9</td>
-                <td>Bodega Central → RAEE</td>
-                <td>Pedro Henríquez</td>
-                <td><span class="badge-tag tag-pendiente">Pendiente Aprobación</span></td>
-                <td>
-                  <button type="button" class="btn-sm" (click)="setActiveNav('Aprobaciones')">Revisar</button>
-                </td>
-              </tr>
+              @for (sol of solicitudes(); track sol.id + "-" + sol.estado) {
+                <tr>
+                  <td>
+                    <strong>{{ sol.id }}</strong>
+                  </td>
+                  <td>
+                    <span
+                      class="badge-tag"
+                      [class.tag-traslado]="sol.tipo === 'TRASLADO'"
+                      [class.tag-baja]="sol.tipo === 'BAJA'"
+                    >
+                      {{
+                        sol.tipo === "TRASLADO"
+                          ? "Traslado"
+                          : sol.tipo === "BAJA"
+                            ? "Baja"
+                            : sol.tipo
+                      }}
+                    </span>
+                  </td>
+                  <td>{{ sol.activoNombre }}</td>
+                  <td>{{ sol.origen }} → {{ sol.destino }}</td>
+                  <td>{{ sol.solicitanteNombre }}</td>
+                  <td>
+                    <span
+                      class="badge-tag"
+                      [ngClass]="{
+                        'tag-pendiente': sol.estado === 'PENDIENTE_REVISION',
+                        'tag-aprobado': sol.estado === 'APROBADO',
+                        'tag-rechazado': sol.estado === 'RECHAZADO',
+                        'tag-ejecutado': sol.estado === 'EJECUTADO',
+                      }"
+                    >
+                      @switch (sol.estado) {
+                        @case ("PENDIENTE_REVISION") {
+                          Pendiente Aprobación
+                        }
+                        @case ("APROBADO") {
+                          Aprobado
+                        }
+                        @case ("RECHAZADO") {
+                          Rechazado
+                        }
+                        @case ("EJECUTADO") {
+                          Ejecutado / Cerrado
+                        }
+                        @default {
+                          {{ sol.estado }}
+                        }
+                      }
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn-sm"
+                      (click)="revisarSolicitud(sol.id)"
+                    >
+                      Revisar
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (solicitudes().length === 0) {
+                <tr>
+                  <td
+                    colspan="7"
+                    style="text-align: center; color: #94a3b8; padding: 24px"
+                  >
+                    No hay solicitudes registradas en el sistema.
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -318,7 +437,11 @@
   <main class="main" *ngIf="opcionActiva === 'Bitácora'">
     <header class="topbar">
       <div class="breadcrumb">
-        <i class="ti ti-clipboard-list" style="font-size: 14px" aria-hidden="true"></i>
+        <i
+          class="ti ti-clipboard-list"
+          style="font-size: 14px"
+          aria-hidden="true"
+        ></i>
         <span>Bitácora de Trazabilidad y Auditoría</span>
       </div>
     </header>
@@ -326,7 +449,8 @@
     <div class="form-area">
       <section class="section">
         <div class="sec-title">
-          <i class="ti ti-history" aria-hidden="true"></i> Eventos Recientes del Sistema
+          <i class="ti ti-history" aria-hidden="true"></i> Eventos Recientes del
+          Sistema
         </div>
         <div class="table-solicitudes-wrap">
           <table class="panel-table">
@@ -340,34 +464,29 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>08/09/2026 14:33</td>
-                <td><span class="badge-tag tag-bodega">Bodega</span></td>
-                <td>Despacho #F-0521 (Salida -20 Papel bond hacia Liceo Bicentenario)</td>
-                <td>C. Tapia</td>
-                <td>Encargado de Bodega</td>
-              </tr>
-              <tr>
-                <td>08/09/2026 11:30</td>
-                <td><span class="badge-tag tag-aprobaciones">Aprobaciones</span></td>
-                <td>Bloqueo de autoaprobación SOL-2026-0422 aplicado por sistema</td>
-                <td>Sistema de Seguridad</td>
-                <td>Segregación RF-03</td>
-              </tr>
-              <tr>
-                <td>08/09/2026 09:14</td>
-                <td><span class="badge-tag tag-solicitudes">Solicitudes</span></td>
-                <td>Creación de Solicitud de Traslado SOL-2026-0421</td>
-                <td>Carmen Tapia</td>
-                <td>Solicitante</td>
-              </tr>
-              <tr>
-                <td>05/09/2026 09:11</td>
-                <td><span class="badge-tag tag-bodega">Bodega</span></td>
-                <td>Traslado #F-0498 (-15 Papel bond hacia Esc. El Palqui)</td>
-                <td>R. Fuentes</td>
-                <td>Encargado de Bodega</td>
-              </tr>
+              @for (ev of eventosBitacora; track ev.fecha + ev.accion) {
+                <tr>
+                  <td>{{ ev.fecha }}</td>
+                  <td>
+                    <span class="badge-tag" [ngClass]="ev.tagClass">{{
+                      ev.modulo
+                    }}</span>
+                  </td>
+                  <td>{{ ev.accion }}</td>
+                  <td>{{ ev.usuario }}</td>
+                  <td>{{ ev.rol }}</td>
+                </tr>
+              }
+              @if (eventosBitacora.length === 0) {
+                <tr>
+                  <td
+                    colspan="5"
+                    style="text-align: center; color: #94a3b8; padding: 24px"
+                  >
+                    No hay eventos registrados en la bitácora.
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>

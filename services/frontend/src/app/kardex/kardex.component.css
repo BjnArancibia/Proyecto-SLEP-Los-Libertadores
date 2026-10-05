@@ -106,6 +106,18 @@
   background: #1d4ed8;
 }
 
+.btn-action.reset {
+  background: #ffffff;
+  color: #475569;
+  border: 0.5px solid #d1d9e6;
+}
+
+.btn-action.reset:hover {
+  background: #f1f5f9;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
 .export {
   font-size: 12px;
   padding: 7px 14px;

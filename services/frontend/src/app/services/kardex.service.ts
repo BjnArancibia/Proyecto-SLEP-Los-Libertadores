@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from "@angular/core";
+import { Injectable, computed, signal, inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
 import {
   MovimientoKardex,
   NuevoMovimientoDTO,
@@ -116,6 +117,8 @@ export class KardexService {
   // Signals principales de datos
   private _producto = signal<ProductoKardex>(this.cargarProducto());
   private _movimientos = signal<MovimientoKardex[]>(this.cargarMovimientos());
+
+  private http = inject(HttpClient);
 
   // Signals de estado visual (filtros y búsqueda en tiempo real)
   readonly filtroTipo = signal<string>("TODO");
@@ -310,6 +313,23 @@ export class KardexService {
     const nuevaLista = [nuevoMovimiento, ...this._movimientos()];
     this.guardar(nuevaLista);
 
+    // Sincronizar nuevo movimiento con base de datos en backend
+    this.http.post("http://127.0.0.1:8000/api/kardex", {
+      activo_codigo: this._producto().codigo,
+      activo_nombre: this._producto().nombre,
+      fecha_registro: fechaHora,
+      tipo_movimiento: dto.tipo,
+      origen_destino: dto.origenDestino,
+      responsable: responsableNombre,
+      cantidad: cantidadAplicada,
+      saldo: nuevoBalance,
+      estado_stock: nuevoBalance <= this._producto().stockMinimoAlerta ? "CRITICO" : "DISPONIBLE",
+      documento_respaldo: dto.documentoReferencia?.trim() || null
+    }).subscribe({
+      next: () => console.log("Movimiento de kardex persistido en Base de Datos."),
+      error: () => console.warn("Aviso: BD no disponible para persistencia directa de kardex.")
+    });
+
     return {
       exito: true,
       mensaje: `Movimiento ${folioGenerado} registrado exitosamente. Nuevo stock: ${nuevoBalance} unidades.`,
@@ -326,14 +346,30 @@ export class KardexService {
     this.terminoBusqueda.set(query);
   }
 
-  // Restablecer datos
+  // Restablecer datos localmente y en BD
   restablecerDatos(): void {
+    const copias: MovimientoKardex[] = JSON.parse(
+      JSON.stringify(MOVIMIENTOS_INICIALES),
+    );
+    const prodCopia: ProductoKardex = JSON.parse(
+      JSON.stringify(PRODUCTO_INICIAL),
+    );
+
     if (typeof localStorage !== "undefined") {
-      localStorage.removeItem(STORAGE_KEY_MOVIMIENTOS);
-      localStorage.removeItem(STORAGE_KEY_PRODUCTO);
+      localStorage.setItem(STORAGE_KEY_MOVIMIENTOS, JSON.stringify(copias));
+      localStorage.setItem(STORAGE_KEY_PRODUCTO, JSON.stringify(prodCopia));
     }
-    this._movimientos.set(MOVIMIENTOS_INICIALES);
-    this._producto.set(PRODUCTO_INICIAL);
+    this._movimientos.set(copias);
+    this._producto.set(prodCopia);
+
+    // Sincronizar reinicio con base de datos en backend
+    this.http.post("http://127.0.0.1:8000/api/kardex/reset", {}).subscribe({
+      next: () => console.log("Kardex de bodega reiniciado en Base de Datos."),
+      error: () =>
+        console.warn(
+          "Aviso: Base de datos no conectada para reset de kardex, reiniciado localmente.",
+        ),
+    });
   }
 
   // Exporta la bitácora de movimientos en formato CSV

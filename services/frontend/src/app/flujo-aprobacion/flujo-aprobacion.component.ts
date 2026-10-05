@@ -6,7 +6,6 @@ import {
   AuthService,
   Usuario,
   Rol,
-  USUARIOS_MOCK,
 } from "../services/auth.service";
 import { MovimientosService } from "../services/movimientos.service";
 import { SolicitudMovimiento } from "../models/movimiento.model";
@@ -29,9 +28,6 @@ export class FlujoAprobacionComponent {
 
   mostrarMenuUsuario = signal<boolean>(false);
 
-  // Selector rápido de perfiles para demostración y pruebas (Mock)
-  mostrarBarraPruebas = signal<boolean>(true);
-
   navItems = [
     { label: "Panel", icon: "ti ti-layout-dashboard", active: false },
     { label: "Activos Fijos", icon: "ti ti-package", active: false },
@@ -45,7 +41,7 @@ export class FlujoAprobacionComponent {
     return this.movimientosService.getSolicitudActual();
   });
 
-  // Lista de todas las solicitudes para el selector de pruebas
+  // Lista de todas las solicitudes para el selector de aprobaciones
   readonly todasSolicitudes = computed(() =>
     this.movimientosService.solicitudes(),
   );
@@ -75,9 +71,6 @@ export class FlujoAprobacionComponent {
     };
   });
 
-  // Lista de usuarios mock disponibles para cambiar de perfil al vuelo
-  readonly usuariosMock = USUARIOS_MOCK;
-
   // Validación reactiva de permisos
   readonly validacionSegregacion = computed(() => {
     const solicitud = this.solicitudActual();
@@ -91,14 +84,6 @@ export class FlujoAprobacionComponent {
     private movimientosService: MovimientosService,
     private router: Router,
   ) {}
-
-  cambiarPerfilPrueba(usuarioId: number): void {
-    this.authService.loginMock(usuarioId);
-    this.mostrarFeedback(
-      "exito",
-      `Sesión cambiada a ${this.usuarioActual()?.nombre} (${this.usuarioActual()?.rol})`,
-    );
-  }
 
   seleccionarSolicitud(id: string): void {
     this.movimientosService.seleccionarSolicitud(id);
@@ -159,13 +144,13 @@ export class FlujoAprobacionComponent {
     }
   }
 
-  // Reiniciar datos
-  reiniciarDemo(): void {
-    this.movimientosService.reiniciarDatosMock();
+  // Reiniciar solicitudes (disponible para cualquier rol, inmediato sin bloqueos)
+  reiniciarSolicitudes(): void {
+    this.movimientosService.reiniciarSolicitudes();
     this.comentarioResolucion.set("");
     this.mostrarFeedback(
       "exito",
-      "Datos de prueba reiniciados al estado inicial.",
+      "Solicitudes reiniciadas correctamente al estado inicial.",
     );
   }
 

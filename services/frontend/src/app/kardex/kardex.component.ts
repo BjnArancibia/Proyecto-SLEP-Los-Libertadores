@@ -133,6 +133,23 @@ export class KardexComponent {
     this.kardexService.exportarCSV();
   }
 
+  // Notificación visual reactiva
+  mensajeNotificacion = signal<{ tipo: "exito" | "error"; texto: string } | null>(
+    null,
+  );
+
+  // Reiniciar y limpiar movimientos de bodega (inmediato y sin bloqueos)
+  reiniciarMovimientos(): void {
+    this.kardexService.restablecerDatos();
+    this.mensajeNotificacion.set({
+      tipo: "exito",
+      texto: "Registros y existencias de bodega reiniciados correctamente al estado original.",
+    });
+    setTimeout(() => {
+      this.mensajeNotificacion.set(null);
+    }, 3500);
+  }
+
   // Manejo Modal
   abrirModal(): void {
     this.nuevoMovimiento = {

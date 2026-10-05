@@ -8,6 +8,8 @@ use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\KardexController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/movimientos/reset', [MovimientoController::class, 'reset']);
+Route::post('/kardex/reset', [KardexController::class, 'reset']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {

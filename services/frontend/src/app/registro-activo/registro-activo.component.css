@@ -601,6 +601,21 @@
   color: #1d4ed8;
 }
 
+.tag-aprobado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.tag-rechazado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tag-ejecutado {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .tag-bodega {
   background: #dbeafe;
   color: #1e40af;
