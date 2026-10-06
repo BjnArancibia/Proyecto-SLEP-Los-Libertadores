@@ -1,0 +1,279 @@
+<div class="bodega-container">
+  <!-- Encabezado de la bodega -->
+  <header class="bodega-header">
+    <div class="header-main">
+      <div class="header-titles">
+        <div class="header-badge">
+          <i class="ti ti-building-warehouse" aria-hidden="true"></i>
+          <span>Bodega Central SLEP Los Libertadores</span>
+        </div>
+        <h1 class="header-title">Gestión de Almacén, Stock y Kardex</h1>
+        <p class="header-subtitle">
+          Control de existencias en tiempo real, trazabilidad de movimientos y
+          suministro a establecimientos educacionales.
+        </p>
+      </div>
+
+      <!-- KPIs rápidos en la bodega -->
+      <div class="header-kpis">
+        <div
+          class="kpi-card clickable"
+          (click)="cambiarCategoria('Todas'); seleccionarSubpestana('inventario')"
+          title="Ver todos los artículos registrados en el catálogo"
+        >
+          <span class="kpi-num">{{ metricasBodega().totalArticulos }}</span>
+          <span class="kpi-label">Artículos Registrados</span>
+        </div>
+        <div
+          class="kpi-card clickable"
+          (click)="cambiarCategoria('Todas'); seleccionarSubpestana('inventario')"
+          title="Ver todas las existencias de bodega"
+        >
+          <span class="kpi-num">{{ metricasBodega().stockTotalItems }}</span>
+          <span class="kpi-label">Unidades en Existencia</span>
+        </div>
+        <div
+          class="kpi-card clickable"
+          [class.kpi-alert]="metricasBodega().articulosCriticos > 0"
+          (click)="cambiarCategoria('Stock Crítico'); seleccionarSubpestana('inventario')"
+          title="Filtrar artículos con stock crítico o bajo"
+        >
+          <span class="kpi-num">{{ metricasBodega().articulosCriticos }}</span>
+          <span class="kpi-label">Stock Crítico / Bajo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de submódulos -->
+    <nav class="bodega-tabs" aria-label="Submódulos de bodega">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="subpestanaActiva() === 'kardex'"
+        (click)="seleccionarSubpestana('kardex')"
+      >
+        <i class="ti ti-chart-arrows-vertical"></i>
+        <span>Kardex en Tiempo Real</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="subpestanaActiva() === 'inventario'"
+        (click)="seleccionarSubpestana('inventario')"
+      >
+        <i class="ti ti-boxes"></i>
+        <span>Control de Stock y Existencias</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="subpestanaActiva() === 'despacho'"
+        (click)="seleccionarSubpestana('despacho')"
+      >
+        <i class="ti ti-truck-delivery"></i>
+        <span>Recepción y Despacho</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Contenido según submódulo activo -->
+  <div class="bodega-content">
+    <!-- 1. Vista kardex -->
+    @if (subpestanaActiva() === "kardex") {
+      <div class="subview-kardex">
+        <app-kardex></app-kardex>
+      </div>
+    }
+
+    <!-- 2. Vista inventario y stock disponible -->
+    @if (subpestanaActiva() === "inventario") {
+      <div class="subview-inventario">
+        <!-- Barra de herramientas de inventario -->
+        <div class="inv-toolbar">
+          <div class="inv-search">
+            <i class="ti ti-search"></i>
+            <input
+              type="text"
+              [value]="busquedaInventario()"
+              (input)="onBuscarInventario($event)"
+              placeholder="Buscar artículo por nombre, código o ubicación..."
+            />
+          </div>
+
+          <!-- Filtro de categorías de inventario -->
+          <div class="inv-categories">
+            @for (cat of categorias; track cat) {
+              <button
+                type="button"
+                class="cat-chip"
+                [class.selected]="categoriaSeleccionada() === cat"
+                [class.chip-critico]="cat === 'Stock Crítico'"
+                (click)="cambiarCategoria(cat)"
+              >
+                @if (cat === 'Stock Crítico') {
+                  <i class="ti ti-alert-triangle" style="margin-right: 4px; font-size: 13px;"></i>
+                }
+                {{ cat }}
+                @if (cat === 'Stock Crítico' && metricasBodega().articulosCriticos > 0) {
+                  <span class="chip-count-alerta">{{ metricasBodega().articulosCriticos }}</span>
+                }
+                @if (cat === 'Todas') {
+                  <span class="chip-count-neutral">{{ articulosInventario().length }}</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Tabla de artículos de inventario -->
+        <div class="inv-table-card">
+          <div class="inv-table-header">
+            <h3>Catálogo de Existencias en Bodega Central</h3>
+            <span class="count-tag"
+              >{{ inventarioFiltrado().length }} artículos listados</span
+            >
+          </div>
+
+          <div class="table-responsive">
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Artículo / Descripción</th>
+                  <th>Categoría</th>
+                  <th>Ubicación en Bodega</th>
+                  <th>Doc. Referencia</th>
+                  <th>Stock Mínimo</th>
+                  <th>Stock Actual</th>
+                  <th>Estado</th>
+                  <th>Último Mov.</th>
+                  <th>Kardex</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of inventarioFiltrado(); track item.id) {
+                  <tr>
+                    <td class="font-mono">{{ item.codigo }}</td>
+                    <td>
+                      <div class="item-name">{{ item.nombre }}</div>
+                    </td>
+                    <td>
+                      <span class="cat-pill">{{ item.categoria }}</span>
+                    </td>
+                    <td>
+                      <div class="loc-text">
+                        <i class="ti ti-map-pin"></i> {{ item.ubicacion }}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="font-mono doc-ref-tag">{{ item.docReferencia }}</span>
+                    </td>
+                    <td>{{ item.stockMinimo }} {{ item.unidad }}</td>
+                    <td class="font-bold">
+                      {{ item.stockActual }} {{ item.unidad }}
+                    </td>
+                    <td>
+                      @if (esStockBajo(item)) {
+                        <span class="badge-stock badge-critico">
+                          <i class="ti ti-alert-triangle"></i> Bajo stock
+                        </span>
+                      } @else {
+                        <span class="badge-stock badge-optimo">
+                          <i class="ti ti-circle-check"></i> Óptimo
+                        </span>
+                      }
+                    </td>
+                    <td class="text-muted">{{ item.ultimoMovimiento }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn-kardex-row"
+                        (click)="verKardexProducto(item.id)"
+                        title="Ver y registrar movimientos de este producto"
+                      >
+                        <i class="ti ti-file-analytics"></i> Kardex
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- 3. Vista recepción y despacho-->
+    @if (subpestanaActiva() === "despacho") {
+      <div class="subview-despacho">
+        <div class="despacho-header-card">
+          <div class="despacho-info">
+            <h3>Historial de Envíos, Despachos y Recepciones</h3>
+            <p>
+              Registro y seguimiento de salidas a establecimientos educacionales
+              y recepciones de órdenes de compra.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-primary-bodega"
+            (click)="seleccionarSubpestana('kardex')"
+          >
+            <i class="ti ti-plus"></i> Registrar Nuevo Movimiento
+          </button>
+        </div>
+
+        <div class="despacho-table-card">
+          <div class="table-responsive">
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Fecha</th>
+                  <th>Tipo Operación</th>
+                  <th>Cantidad</th>
+                  <th>Origen / Destino</th>
+                  <th>Doc. Referencia</th>
+                  <th>Responsable</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of despachosYRecepciones(); track op.folio) {
+                  <tr>
+                    <td class="font-mono">{{ op.folio }}</td>
+                    <td class="text-muted">{{ op.fecha }}</td>
+                    <td>
+                      <span
+                        class="op-badge"
+                        [ngClass]="{
+                          'op-salida': op.tipo === 'SALIDA',
+                          'op-entrada': op.tipo === 'ENTRADA',
+                          'op-traslado': op.tipo === 'TRASLADO',
+                          'op-devolucion': op.tipo === 'DEVOLUCION',
+                        }"
+                      >
+                        {{ op.tipoLabel }}
+                      </span>
+                    </td>
+                    <td class="font-bold">{{ op.cantidad }} unidades</td>
+                    <td>{{ op.origenDestino }}</td>
+                    <td class="font-mono">{{ op.documento }}</td>
+                    <td>{{ op.responsable }}</td>
+                    <td>
+                      <span class="badge-estado-ok">
+                        <i class="ti ti-check"></i> {{ op.estado }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

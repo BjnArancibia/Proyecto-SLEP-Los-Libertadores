@@ -18,16 +18,57 @@
         <span>{{ item.label }}</span>
       </button>
     </nav>
-    <div class="sidebar-foot">
+    <div
+      class="sidebar-foot"
+      (click)="alternarMenuUsuario($event)"
+      [class.active]="mostrarMenuUsuario"
+      role="button"
+      tabindex="0"
+      title="Opciones de cuenta"
+    >
       <div class="avatar">{{ currentUser.initials }}</div>
       <div class="user-meta">
         <div class="foot-name">{{ currentUser.name }}</div>
         <div class="foot-role">{{ currentUser.role }}</div>
       </div>
+      <i
+        class="ti ti-chevron-up foot-arrow"
+        [class.rotated]="mostrarMenuUsuario"
+        aria-hidden="true"
+      ></i>
+
+      <!-- Menú emergente al hacer clic en el perfil -->
+      <div
+        class="user-menu-popover"
+        *ngIf="mostrarMenuUsuario"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="user-menu-info">
+          <span class="user-menu-name">{{ currentUser.name }}</span>
+          <span class="user-menu-email" *ngIf="currentUser.email">{{
+            currentUser.email
+          }}</span>
+        </div>
+        <button type="button" class="btn-logout" (click)="cerrarSesion()">
+          <i class="ti ti-logout" aria-hidden="true"></i>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
     </div>
   </aside>
 
-  <main class="main">
+  <!-- VISTA DE APROBACIONES (RF-03) -->
+  <main class="main" *ngIf="opcionActiva === 'Aprobaciones'" style="padding: 0">
+    <app-flujo-aprobacion></app-flujo-aprobacion>
+  </main>
+
+  <!-- VISTA DE BODEGA / KARDEX (RF-04) -->
+  <main class="main" *ngIf="opcionActiva === 'Bodega'" style="padding: 0">
+    <app-bodega></app-bodega>
+  </main>
+
+  <!-- VISTA DE ACTIVOS FIJOS / FORMULARIO -->
+  <main class="main" *ngIf="opcionActiva === 'Activos Fijos'">
     <header class="topbar">
       <div class="breadcrumb">
         <i class="ti ti-package" style="font-size: 14px" aria-hidden="true"></i>
@@ -41,29 +82,46 @@
       </div>
       <div class="top-btns">
         <button type="button" class="btn">Cancelar</button>
-        <button type="button" class="btn primary">
+        <button type="button" class="btn primary" (click)="guardarActivo()">
           <i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar
         </button>
       </div>
     </header>
 
-    <div class="form-area">
+    <div class="form-area" [formGroup]="activoForm">
       <!--Identificación -->
       <section class="section">
         <div class="sec-title">
           <i class="ti ti-qrcode" aria-hidden="true"></i> Identificación
           patrimonial
         </div>
-        <div class="grid3">
+        <div class="grid3-etiqueta">
           <div class="field">
             <label for="numPatrimonial"
               >N° patrimonial <span class="req">*</span></label
             >
-            <input id="numPatrimonial" type="text" class="readonly" readonly />
+            <input
+              id="numPatrimonial"
+              formControlName="numero_patrimonial"
+              type="text"
+            />
           </div>
           <div class="field">
             <label for="numSerie">N° de serie</label>
-            <input id="numSerie" type="text" />
+            <input id="numSerie" formControlName="numero_serie" type="text" />
+          </div>
+          <div class="field field-etiqueta-btn">
+            <label class="label-invisible">Etiqueta</label>
+            <button
+              type="button"
+              class="btn-etiqueta"
+              [disabled]="!botonEtiquetaHabilitado"
+              (click)="abrirModal()"
+              title="Disponible tras guardar el activo"
+            >
+              <i class="ti ti-qrcode" aria-hidden="true"></i>
+              Ver etiqueta
+            </button>
           </div>
         </div>
       </section>
@@ -79,11 +137,15 @@
             <label for="nombreBien"
               >Nombre del bien <span class="req">*</span></label
             >
-            <input id="nombreBien" type="text" />
+            <input id="nombreBien" formControlName="nombre" type="text" />
           </div>
           <div class="field">
             <label for="marcaModelo">Marca / Modelo</label>
-            <input id="marcaModelo" type="text" />
+            <input
+              id="marcaModelo"
+              formControlName="marca_modelo"
+              type="text"
+            />
           </div>
         </div>
         <div class="field" style="margin-bottom: 12px">
@@ -123,7 +185,7 @@
             <label for="establecimiento"
               >Establecimiento <span class="req">*</span></label
             >
-            <select id="establecimiento">
+            <select id="establecimiento" formControlName="establecimiento">
               <option>Bodega central SLEP</option>
               <option>Esc. Los Andes</option>
               <option>Liceo Bicentenario</option>
@@ -131,14 +193,852 @@
           </div>
           <div class="field">
             <label for="dependencia">Dependencia / Sala</label>
-            <input id="dependencia" type="text" />
+            <input id="dependencia" formControlName="dependencia" type="text" />
           </div>
           <div class="field">
             <label for="custodio">Custodio responsable</label>
-            <input id="custodio" type="text" />
+            <input id="custodio" formControlName="custodio" type="text" />
           </div>
         </div>
       </section>
     </div>
   </main>
+
+  <!-- VISTA DE PANEL (DASHBOARD) -->
+  <main class="main" *ngIf="opcionActiva === 'Panel'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i
+          class="ti ti-layout-dashboard"
+          style="font-size: 14px"
+          aria-hidden="true"
+        ></i>
+        <span>Panel General de Gestión Patrimonial</span>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-chart-bar" aria-hidden="true"></i> Indicadores
+          Generales — SLEP Los Libertadores
+        </div>
+        <div class="grid3">
+          <div class="field card-kpi" (click)="setActiveNav('Activos Fijos')">
+            <div class="kpi-icon"><i class="ti ti-package"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-num">148</span>
+              <span class="kpi-lbl">Activos Fijos Registrados</span>
+            </div>
+          </div>
+          <div class="field card-kpi" (click)="setActiveNav('Bodega')">
+            <div class="kpi-icon kpi-blue">
+              <i class="ti ti-building-warehouse"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-num">122</span>
+              <span class="kpi-lbl">Stock Central (Papel Bond 75g)</span>
+            </div>
+          </div>
+          <div class="field card-kpi" (click)="setActiveNav('Aprobaciones')">
+            <div class="kpi-icon kpi-amber">
+              <i class="ti ti-checklist"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-num">{{ pendientesAprobacion }}</span>
+              <span class="kpi-lbl">Aprobaciones Pendientes</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-bolt" aria-hidden="true"></i> Accesos Rápidos
+        </div>
+        <div class="grid3">
+          <button
+            type="button"
+            class="btn primary"
+            (click)="setActiveNav('Activos Fijos')"
+          >
+            <i class="ti ti-plus"></i> Registrar Activo Fijo
+          </button>
+          <button type="button" class="btn" (click)="setActiveNav('Bodega')">
+            <i class="ti ti-building-warehouse"></i> Ver Kardex de Bodega
+          </button>
+          <button
+            type="button"
+            class="btn"
+            (click)="setActiveNav('Aprobaciones')"
+          >
+            <i class="ti ti-checklist"></i> Resolver Aprobaciones
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA DE SOLICITUDES -->
+  <main class="main" *ngIf="opcionActiva === 'Solicitudes'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i
+          class="ti ti-arrow-transfer-up"
+          style="font-size: 14px"
+          aria-hidden="true"
+        ></i>
+        <span>Solicitudes de Movimiento Patrimonial</span>
+      </div>
+      <div class="top-btns">
+        <button
+          type="button"
+          class="btn"
+          (click)="reiniciarSolicitudes()"
+          title="Reiniciar y limpiar solicitudes al estado original"
+        >
+          <i class="ti ti-rotate-2" aria-hidden="true"></i> Reiniciar
+          Solicitudes
+        </button>
+        <button
+          type="button"
+          class="btn primary"
+          (click)="setActiveNav('Aprobaciones')"
+        >
+          <i class="ti ti-checklist"></i> Ir a Bandeja de Aprobaciones
+        </button>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <section class="section">
+        <div class="sec-title">
+          <i class="ti ti-list" aria-hidden="true"></i> Solicitudes Registradas
+          en el Sistema
+        </div>
+
+        <!-- Notificación visual de reinicio -->
+        @if (mensajeFeedback()) {
+          <div
+            style="
+              margin-bottom: 14px;
+              padding: 10px 16px;
+              border-radius: 8px;
+              font-size: 12.5px;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: #d1fae5;
+              color: #065f46;
+              border: 1px solid #a7f3d0;
+            "
+          >
+            <i class="ti ti-check" aria-hidden="true"></i>
+            <span>{{ mensajeFeedback()!.texto }}</span>
+          </div>
+        }
+
+        <div class="table-solicitudes-wrap">
+          <table class="panel-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th>Activo</th>
+                <th>Origen → Destino</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (sol of solicitudes(); track sol.id + "-" + sol.estado) {
+                <tr>
+                  <td>
+                    <strong>{{ sol.id }}</strong>
+                  </td>
+                  <td>
+                    <span
+                      class="badge-tag"
+                      [class.tag-traslado]="sol.tipo === 'TRASLADO'"
+                      [class.tag-baja]="sol.tipo === 'BAJA'"
+                    >
+                      {{
+                        sol.tipo === "TRASLADO"
+                          ? "Traslado"
+                          : sol.tipo === "BAJA"
+                            ? "Baja"
+                            : sol.tipo
+                      }}
+                    </span>
+                  </td>
+                  <td>{{ sol.activoNombre }}</td>
+                  <td>{{ sol.origen }} → {{ sol.destino }}</td>
+                  <td>{{ sol.solicitanteNombre }}</td>
+                  <td>
+                    <span
+                      class="badge-tag"
+                      [ngClass]="{
+                        'tag-pendiente': sol.estado === 'PENDIENTE_REVISION',
+                        'tag-aprobado': sol.estado === 'APROBADO',
+                        'tag-rechazado': sol.estado === 'RECHAZADO',
+                        'tag-ejecutado': sol.estado === 'EJECUTADO',
+                      }"
+                    >
+                      @switch (sol.estado) {
+                        @case ("PENDIENTE_REVISION") {
+                          Pendiente Aprobación
+                        }
+                        @case ("APROBADO") {
+                          Aprobado
+                        }
+                        @case ("RECHAZADO") {
+                          Rechazado
+                        }
+                        @case ("EJECUTADO") {
+                          Ejecutado / Cerrado
+                        }
+                        @default {
+                          {{ sol.estado }}
+                        }
+                      }
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn-sm"
+                      (click)="revisarSolicitud(sol.id)"
+                    >
+                      Revisar
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (solicitudes().length === 0) {
+                <tr>
+                  <td
+                    colspan="7"
+                    style="text-align: center; color: #94a3b8; padding: 24px"
+                  >
+                    No hay solicitudes registradas en el sistema.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA DE BITÁCORA (RF-05) -->
+  <main class="main" *ngIf="opcionActiva === 'Bitácora'">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <i
+          class="ti ti-shield-lock"
+          style="font-size: 16px; color: #1e3a5f"
+          aria-hidden="true"
+        ></i>
+        <span>Bitácora Auditable de Transacciones</span>
+        >
+      </div>
+      <div class="topbar-actions" style="display: flex; gap: 8px">
+        <button
+          type="button"
+          class="btn-sm btn-outline"
+          (click)="reiniciarBitacora()"
+          title="Reiniciar datos de prueba de bitácora a estado inicial"
+        >
+          <i class="ti ti-refresh"></i> Reiniciar Bitácora
+        </button>
+        <button
+          type="button"
+          class="btn-sm btn-primary"
+          (click)="exportarBitacoraCSV()"
+          title="Exportar histórico a formato CSV"
+        >
+          <i class="ti ti-download"></i> Exportar Auditoría CSV
+        </button>
+      </div>
+    </header>
+
+    <div class="form-area">
+      <!-- Mensaje de Feedback -->
+      <div
+        *ngIf="mensajeFeedback()"
+        class="alert-box alert-{{ mensajeFeedback()?.tipo }}"
+        style="margin-bottom: 16px"
+      >
+        <i class="ti ti-check" *ngIf="mensajeFeedback()?.tipo === 'exito'"></i>
+        <i
+          class="ti ti-alert-triangle"
+          *ngIf="mensajeFeedback()?.tipo === 'error'"
+        ></i>
+        <span>{{ mensajeFeedback()?.texto }}</span>
+      </div>
+
+      <!-- Tarjetas KPI Estadísticas -->
+      <div class="bitacora-kpis">
+        <div class="kpi-card">
+          <div class="kpi-icon icon-total"><i class="ti ti-history"></i></div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ statsBitacora.total }}</span>
+            <span class="kpi-label">Transacciones Registradas</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-activos"><i class="ti ti-package"></i></div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ statsBitacora.activos }}</span>
+            <span class="kpi-label">Operaciones sobre Activos</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-existencias">
+            <i class="ti ti-building-warehouse"></i>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ statsBitacora.existencias }}</span>
+            <span class="kpi-label">Operaciones de Existencias</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-solicitudes">
+            <i class="ti ti-arrows-exchange"></i>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ statsBitacora.solicitudes }}</span>
+            <span class="kpi-label">Flujos de Movimiento</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <section class="section" style="margin-bottom: 16px">
+        <div class="bitacora-filtros-bar">
+          <div class="filtro-busqueda">
+            <i class="ti ti-search search-icon"></i>
+            <input
+              type="text"
+              class="input-search"
+              placeholder="Buscar por folio, usuario o acción..."
+              [value]="filtroBitacoraTexto()"
+              (input)="onFiltroTextoChange($event)"
+            />
+          </div>
+          <div class="filtro-selects">
+            <div class="select-group">
+              <label><i class="ti ti-category"></i> Módulo:</label>
+              <select
+                [value]="filtroBitacoraModulo()"
+                (change)="onFiltroModuloChange($event)"
+                class="select-custom"
+              >
+                <option value="TODOS">Todos los Módulos</option>
+                <option value="ACTIVOS">Activos Fijos</option>
+                <option value="EXISTENCIAS">Existencias (Kardex)</option>
+                <option value="SOLICITUDES">Solicitudes de Flujo</option>
+              </select>
+            </div>
+            <div class="select-group">
+              <label><i class="ti ti-check"></i> Decisión:</label>
+              <select
+                [value]="filtroBitacoraDecision()"
+                (change)="onFiltroDecisionChange($event)"
+                class="select-custom"
+              >
+                <option value="TODAS">Todas las Decisiones</option>
+                <option value="REGISTRADO">Registrado</option>
+                <option value="ACTUALIZADO">Actualizado</option>
+                <option value="APROBADO">Aprobado</option>
+                <option value="RECHAZADO">Rechazado</option>
+                <option value="AJUSTADO">Ajustado</option>
+                <option value="EJECUTADO">Ejecutado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabla Principal de Transacciones Auditables -->
+      <section class="section">
+        <div
+          class="sec-title"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span
+            ><i class="ti ti-shield-check" aria-hidden="true"></i> Registro de
+            Operaciones</span
+          >
+          <span style="font-size: 12px; color: #64748b; font-weight: normal">
+            Mostrando
+            <strong>{{ transaccionesBitacora.length }}</strong> transacciones
+            auditadas
+          </span>
+        </div>
+        <div class="table-solicitudes-wrap">
+          <table class="panel-table">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Fecha / Hora</th>
+                <th>Usuario y Rol</th>
+                <th>Módulo</th>
+                <th>Acción Ejecutada</th>
+                <th>Decisión</th>
+                <th>Justificación</th>
+                <th style="text-align: center">Trazabilidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of transaccionesBitacora; track t.id) {
+                <tr>
+                  <td>
+                    <span
+                      class="badge-folio"
+                      (click)="abrirDetalleTransaccion(t)"
+                      title="Ver detalle de auditoría"
+                    >
+                      <i class="ti ti-file-text"></i> {{ t.folio }}
+                    </span>
+                  </td>
+                  <td
+                    style="white-space: nowrap; font-size: 12px; color: #334155"
+                  >
+                    {{ t.fecha_hora }}
+                  </td>
+                  <td>
+                    <div
+                      style="
+                        font-weight: 600;
+                        font-size: 12.5px;
+                        color: #0f172a;
+                      "
+                    >
+                      {{ t.usuario_nombre }}
+                    </div>
+                    <span
+                      class="badge-tag tag-pendiente"
+                      style="font-size: 10px"
+                      >{{ t.usuario_perfil }}</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="badge-modulo badge-mod-{{
+                        t.modulo.toLowerCase()
+                      }}"
+                    >
+                      {{ t.modulo }}
+                    </span>
+                  </td>
+                  <td
+                    style="font-weight: 500; font-size: 12.5px; color: #1e293b"
+                  >
+                    {{ t.accion }}
+                  </td>
+                  <td>
+                    <span
+                      class="badge-decision badge-dec-{{
+                        t.decision.toLowerCase()
+                      }}"
+                    >
+                      {{ t.decision }}
+                    </span>
+                  </td>
+                  <td class="col-justificacion" title="{{ t.justificacion }}">
+                    {{ t.justificacion || "—" }}
+                  </td>
+                  <td style="text-align: center; white-space: nowrap">
+                    <button
+                      type="button"
+                      class="btn-ver-diff"
+                      (click)="abrirDetalleTransaccion(t)"
+                      title="Ver comparativa de valores anteriores y posteriores (RF-05)"
+                    >
+                      <i class="ti ti-arrows-diff"></i> Ver Diferencias
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (transaccionesBitacora.length === 0) {
+                <tr>
+                  <td
+                    colspan="8"
+                    style="text-align: center; color: #94a3b8; padding: 36px"
+                  >
+                    <i
+                      class="ti ti-file-search"
+                      style="
+                        font-size: 32px;
+                        display: block;
+                        margin-bottom: 8px;
+                      "
+                    ></i>
+                    No se encontraron transacciones en la bitácora con los
+                    filtros seleccionados.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAL ETIQUETA  -->
+  <div
+    *ngIf="mostrarModal"
+    class="modal-overlay"
+    (click)="cerrarModal()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-titulo"
+  >
+    <!-- Caja del modal para que click adentro no cierre -->
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <!-- Encabezado del modal -->
+      <div class="modal-header">
+        <span id="modal-titulo" class="modal-title">
+          <i class="ti ti-qrcode" aria-hidden="true"></i>
+          Etiqueta de Activo Fijo
+        </span>
+        <button
+          type="button"
+          class="modal-close"
+          (click)="cerrarModal()"
+          aria-label="Cerrar"
+        >
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Tarjeta de la etiqueta -->
+      <div class="etiqueta-card">
+        <!-- Encabezado institucional -->
+        <div class="etiqueta-header">
+          <span class="etiqueta-org">SLEP LOS LIBERTADORES</span>
+          <span class="etiqueta-tipo">ACTIVO FIJO</span>
+        </div>
+
+        <!-- Cuerpo: QR + datos -->
+        <div class="etiqueta-body">
+          <canvas #qrCanvas class="etiqueta-qr"></canvas>
+          <div class="etiqueta-datos" *ngIf="ultimoActivoGuardado">
+            <div class="dato-row">
+              <span class="dato-label">N° Patrimonial:</span>
+              <span class="dato-val">{{
+                ultimoActivoGuardado.numero_patrimonial
+              }}</span>
+            </div>
+            <div class="dato-row">
+              <span class="dato-label">Serie:</span>
+              <span class="dato-val">{{
+                ultimoActivoGuardado.numero_serie
+              }}</span>
+            </div>
+            <div class="dato-row">
+              <span class="dato-label">Resp:</span>
+              <span class="dato-val">{{ ultimoActivoGuardado.custodio }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Código de barras -->
+        <div class="etiqueta-barcode">
+          <svg #barcodesvg></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE Y COMPARATIVA DE AUDITORÍA (RF-05) -->
+  <div
+    *ngIf="mostrarModalDetalleBitacora() && transaccionSeleccionada()"
+    class="modal-overlay"
+    (click)="cerrarDetalleTransaccion()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-bitacora-titulo"
+  >
+    <div class="modal-box modal-box-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span id="modal-bitacora-titulo" class="modal-title">
+            <i class="ti ti-shield-check" aria-hidden="true"></i>
+            Auditoría de Transacción: {{ transaccionSeleccionada()?.folio }}
+          </span>
+          <span class="modal-subtitle">
+            RF-05 — Registro Histórico de Operación y Trazabilidad de Valores
+            Anteriores y Posteriores
+          </span>
+        </div>
+        <button
+          type="button"
+          class="modal-close"
+          (click)="cerrarDetalleTransaccion()"
+          aria-label="Cerrar"
+        >
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Ficha de Metadatos Obligatorios RF-05 -->
+        <div class="audit-meta-grid">
+          <div class="audit-meta-item">
+            <span class="meta-label">Folio Institucional</span>
+            <span class="meta-value bold font-mono">{{
+              transaccionSeleccionada()?.folio
+            }}</span>
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Fecha y Hora</span>
+            <span class="meta-value">{{
+              transaccionSeleccionada()?.fecha_hora
+            }}</span>
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Usuario Responsable</span>
+            <span class="meta-value bold">{{
+              transaccionSeleccionada()?.usuario_nombre
+            }}</span>
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Perfil / Rol</span>
+            <span class="meta-value"
+              ><span class="badge-tag tag-pendiente">{{
+                transaccionSeleccionada()?.usuario_perfil
+              }}</span></span
+            >
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Módulo</span>
+            <span class="meta-value"
+              ><span
+                class="badge-modulo badge-mod-{{
+                  transaccionSeleccionada()?.modulo?.toLowerCase()
+                }}"
+                >{{ transaccionSeleccionada()?.modulo }}</span
+              ></span
+            >
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Decisión Tomada</span>
+            <span class="meta-value"
+              ><span
+                class="badge-decision badge-dec-{{
+                  transaccionSeleccionada()?.decision?.toLowerCase()
+                }}"
+                >{{ transaccionSeleccionada()?.decision }}</span
+              ></span
+            >
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">Acción Ejecutada</span>
+            <span class="meta-value bold">{{
+              transaccionSeleccionada()?.accion
+            }}</span>
+          </div>
+          <div class="audit-meta-item">
+            <span class="meta-label">IP de Origen</span>
+            <span class="meta-value font-mono">{{
+              transaccionSeleccionada()?.ip_origen || "127.0.0.1"
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Justificación Obligatoria -->
+        <div class="audit-justificacion-card">
+          <div class="justificacion-header">
+            <i class="ti ti-message-2"></i> Justificación de la Operación /
+            Decisión:
+          </div>
+          <div class="justificacion-body">
+            "{{
+              transaccionSeleccionada()?.justificacion ||
+                "Sin justificación declarada"
+            }}"
+          </div>
+        </div>
+
+        <!-- Comparador de Valores Anteriores y Posteriores (Diff) -->
+        <div class="audit-diff-section">
+          <div class="diff-section-header">
+            <i class="ti ti-arrows-exchange"></i>
+            <span
+              >Comparación de Valores Anteriores vs. Posteriores del
+              Registro</span
+            >
+          </div>
+
+          <!-- Caso 1: Alta / Registro Inicial (Valores Anteriores es null) -->
+          @if (!transaccionSeleccionada()?.valores_anteriores) {
+            <div class="diff-banner diff-banner-alta">
+              <i class="ti ti-circle-check"></i>
+              <div>
+                <strong>Alta de Registro (Creación Inicial)</strong>
+                <p>
+                  No existen valores anteriores en la base de datos para esta
+                  transacción. A continuación se detallan los valores
+                  registrados inicialmente:
+                </p>
+              </div>
+            </div>
+
+            <div class="diff-table-wrap">
+              <table class="diff-table">
+                <thead>
+                  <tr>
+                    <th>Campo / Atributo</th>
+                    <th>Valor Inicial Registrado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (
+                    clave of obtenerClavesComparacion(
+                      transaccionSeleccionada()
+                    );
+                    track clave
+                  ) {
+                    <tr>
+                      <td class="diff-col-campo">
+                        {{ formatearNombreCampo(clave) }}
+                      </td>
+                      <td class="diff-val-posterior bold">
+                        {{
+                          transaccionSeleccionada()?.valores_posteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Caso 2: Modificación / Resolución / Ajuste (Valores Anteriores y Posteriores presentes) -->
+          @if (transaccionSeleccionada()?.valores_anteriores) {
+            <div class="diff-banner diff-banner-modificacion">
+              <i class="ti ti-edit"></i>
+              <div>
+                <strong>Trazabilidad de Cambios (Auditoría Delta)</strong>
+                <p>
+                  Se resaltan las diferencias entre el estado previo de los
+                  atributos y el estado posterior resultante tras la operación:
+                </p>
+              </div>
+            </div>
+
+            <div class="diff-table-wrap">
+              <table class="diff-table">
+                <thead>
+                  <tr>
+                    <th>Campo / Atributo</th>
+                    <th>Valor Anterior</th>
+                    <th>Valor Posterior Resultante</th>
+                    <th style="text-align: center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (
+                    clave of obtenerClavesComparacion(
+                      transaccionSeleccionada()
+                    );
+                    track clave
+                  ) {
+                    <tr
+                      [class.fila-modificada]="
+                        esValorModificado(clave, transaccionSeleccionada())
+                      "
+                    >
+                      <td class="diff-col-campo">
+                        {{ formatearNombreCampo(clave) }}
+                      </td>
+                      <td
+                        class="diff-val-anterior"
+                        [class.val-tachado]="
+                          esValorModificado(clave, transaccionSeleccionada())
+                        "
+                      >
+                        {{
+                          transaccionSeleccionada()?.valores_anteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
+                      </td>
+                      <td
+                        class="diff-val-posterior"
+                        [class.val-destacado]="
+                          esValorModificado(clave, transaccionSeleccionada())
+                        "
+                      >
+                        {{
+                          transaccionSeleccionada()?.valores_posteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
+                      </td>
+                      <td style="text-align: center">
+                        @if (
+                          esValorModificado(clave, transaccionSeleccionada())
+                        ) {
+                          <span class="badge-cambio badge-cambio-si"
+                            >Modificado</span
+                          >
+                        } @else {
+                          <span class="badge-cambio badge-cambio-no"
+                            >Sin cambio</span
+                          >
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+        <!-- Acordeón de Auditoría Técnica (JSON Crudo) -->
+        <details class="audit-raw-json">
+          <summary><i class="ti ti-code"></i> Ver Estructura JSON</summary>
+          <div class="json-grid">
+            <div class="json-col">
+              <span class="json-title">Valores Anteriores (JSON):</span>
+              <pre>{{
+                transaccionSeleccionada()?.valores_anteriores | json
+              }}</pre>
+            </div>
+            <div class="json-col">
+              <span class="json-title">Valores Posteriores (JSON):</span>
+              <pre>{{
+                transaccionSeleccionada()?.valores_posteriores | json
+              }}</pre>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-sm btn-outline"
+          (click)="cerrarDetalleTransaccion()"
+        >
+          Cerrar Auditoría
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,0 +1,475 @@
+<div class="kardex-view">
+  <!-- BARRA SUPERIOR CON BÚSQUEDA Y FILTROS -->
+  <header class="topbar">
+    <div class="search">
+      <i
+        class="ti ti-search"
+        style="font-size: 14px; color: #94a3b8"
+        aria-hidden="true"
+      ></i>
+      <input
+        type="text"
+        [value]="busquedaTexto()"
+        (input)="onBuscar($event)"
+        placeholder="Buscar por folio, destino o responsable..."
+      />
+    </div>
+    <!-- Filtros empleados -->>
+    <div class="filters">
+      <button
+        type="button"
+        class="fbtn"
+        [class.on]="filtroActual() === 'TODO'"
+        (click)="aplicarFiltro('TODO')"
+      >
+        Todo
+      </button>
+      <button
+        type="button"
+        class="fbtn"
+        [class.on]="filtroActual() === 'ENTRADA'"
+        (click)="aplicarFiltro('ENTRADA')"
+      >
+        Entradas
+      </button>
+      <button
+        type="button"
+        class="fbtn"
+        [class.on]="filtroActual() === 'SALIDA'"
+        (click)="aplicarFiltro('SALIDA')"
+      >
+        Salidas
+      </button>
+      <button
+        type="button"
+        class="fbtn"
+        [class.on]="filtroActual() === 'TRASLADO'"
+        (click)="aplicarFiltro('TRASLADO')"
+      >
+        Traslados
+      </button>
+      <button
+        type="button"
+        class="fbtn"
+        [class.on]="filtroActual() === 'DEVOLUCION'"
+        (click)="aplicarFiltro('DEVOLUCION')"
+      >
+        Devoluciones
+      </button>
+    </div>
+
+    <div class="topbar-actions">
+      <button
+        type="button"
+        class="btn-action reset"
+        (click)="reiniciarMovimientos()"
+        title="Reiniciar y limpiar registros de bodega"
+      >
+        <i class="ti ti-rotate-2" aria-hidden="true"></i>
+        <span>Reiniciar</span>
+      </button>
+      <button type="button" class="btn-action primary" (click)="abrirModal()">
+        <i class="ti ti-plus" aria-hidden="true"></i>
+        <span>Nuevo movimiento</span>
+      </button>
+      <button
+        type="button"
+        class="export"
+        (click)="exportarAuditoria()"
+        title="Descargar reporte auditable CSV"
+      >
+        <i class="ti ti-download" aria-hidden="true"></i>
+        <span>Exportar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Notificación visual de acción -->
+  @if (mensajeNotificacion()) {
+    <div
+      class="kardex-alert-banner"
+      style="
+        margin: 12px 28px 0 28px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      "
+    >
+      <i class="ti ti-check" aria-hidden="true"></i>
+      <span>{{ mensajeNotificacion()!.texto }}</span>
+    </div>
+  }
+
+  <!-- Barra resumen de productos y existencias -->
+  <section class="product-bar">
+    <div class="prod-info">
+      <div class="prod-name-row">
+        <h1 class="prod-name">{{ producto().nombre }}</h1>
+        <span class="badge-stock-alerta" *ngIf="stockCritico()">
+          <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+          {{
+            esVistaConsolidada()
+              ? articulosCriticosCount() + " insumo(s) en Stock Crítico"
+              : "Stock Crítico"
+          }}
+        </span>
+      </div>
+      <div class="prod-meta">
+        Código {{ producto().codigo }} · Categoría: {{ producto().categoria }} ·
+        Ubicación: {{ producto().ubicacionBodega }} · Doc. Ref:
+        <strong>{{ producto().documentoReferencia || "—" }}</strong>
+      </div>
+      <div
+        class="prod-selector-row"
+        style="margin-top: 8px; display: flex; align-items: center; gap: 8px"
+      >
+        <label
+          for="selectProductoKardex"
+          style="
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          "
+        >
+          <i class="ti ti-switch-horizontal"></i> Cambiar Insumo en Vista:
+        </label>
+        <select
+          id="selectProductoKardex"
+          [value]="producto().id"
+          (change)="onCambiarProducto($event)"
+          style="
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 12.5px;
+            background: #fff;
+            color: #1e293b;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+          "
+        >
+          <option value="TODOS">
+            Todos los Insumos (Vista Consolidada —
+            {{ catalogoProductos().length }} productos)
+          </option>
+          @for (prod of catalogoProductos(); track prod.id) {
+            <option [value]="prod.id">
+              {{ prod.nombre }} (Stock: {{ getStockDeProducto(prod.id) }}
+              {{ prod.unidadMedida }})
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="stock-pills">
+      <div class="sp">
+        <div class="sp-val g">{{ totalEntradas() }}</div>
+        <div class="sp-lbl">Entradas</div>
+      </div>
+      <div class="sp">
+        <div class="sp-val r">{{ totalSalidas() }}</div>
+        <div class="sp-lbl">Salidas</div>
+      </div>
+      <div class="sp" [class.sp-critico]="stockCritico()">
+        <div class="sp-val b">{{ stockActual() }}</div>
+        <div class="sp-lbl">
+          {{ esVistaConsolidada() ? "Stock total global" : "Stock actual" }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estructura de la tabla de movimientos -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Insumo</th>
+          <th>Movimiento</th>
+          <th>Cantidad</th>
+          <th>Origen / Destino</th>
+          <th>Responsable</th>
+          <th>Doc. Ref.</th>
+          <th style="text-align: right">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Movimientos propios del kardex -->
+        <tr *ngFor="let m of movimientos()">
+          <td class="folio">{{ m.folio }}</td>
+          <td class="cell-fecha">{{ m.fecha }}</td>
+          <td>
+            <span
+              class="prod-badge-kardex"
+              [title]="getNombreProducto(m.productoId)"
+            >
+              {{ getNombreProductoCorto(m.productoId) }}
+            </span>
+          </td>
+          <td>
+            <span class="type-tag e" *ngIf="m.tipo === 'ENTRADA'">
+              <i
+                class="ti ti-arrow-down"
+                style="font-size: 11px"
+                aria-hidden="true"
+              ></i>
+              Entrada
+            </span>
+            <span class="type-tag s" *ngIf="m.tipo === 'SALIDA'">
+              <i
+                class="ti ti-arrow-up"
+                style="font-size: 11px"
+                aria-hidden="true"
+              ></i>
+              Salida
+            </span>
+            <span class="type-tag t" *ngIf="m.tipo === 'TRASLADO'">
+              <i
+                class="ti ti-arrows-exchange"
+                style="font-size: 11px"
+                aria-hidden="true"
+              ></i>
+              Traslado
+            </span>
+            <span class="type-tag d" *ngIf="m.tipo === 'DEVOLUCION'">
+              <i
+                class="ti ti-rotate-clockwise"
+                style="font-size: 11px"
+                aria-hidden="true"
+              ></i>
+              Devolución
+            </span>
+            <span class="type-tag a" *ngIf="m.tipo === 'AJUSTE'">
+              <i
+                class="ti ti-adjustments"
+                style="font-size: 11px"
+                aria-hidden="true"
+              ></i>
+              Ajuste
+            </span>
+          </td>
+          <td [ngClass]="m.cantidad >= 0 ? 'q-pos' : 'q-neg'">
+            {{ m.cantidad >= 0 ? "+" + m.cantidad : m.cantidad }}
+          </td>
+          <td>{{ m.origenDestino }}</td>
+          <td class="cell-resp">
+            <span class="resp-nombre">{{ m.responsableNombre }}</span>
+          </td>
+          <td class="cell-doc">{{ m.documentoReferencia || "—" }}</td>
+          <td class="balance" style="text-align: right">{{ m.balance }}</td>
+        </tr>
+
+        <tr *ngIf="movimientos().length === 0">
+          <td colspan="8" class="empty-state">
+            <i
+              class="ti ti-search-off"
+              style="
+                font-size: 24px;
+                margin-bottom: 6px;
+                display: block;
+                color: #94a3b8;
+              "
+            ></i>
+            No se encontraron registros de Kardex con el filtro o término
+            aplicado.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Registro de nuevo movimiento-->
+<div
+  class="modal-backdrop"
+  *ngIf="mostrarModalMovimiento()"
+  (click)="cerrarModal()"
+>
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="modal-title-group">
+        <i
+          class="ti ti-building-warehouse"
+          style="color: #2563a8; font-size: 18px"
+          aria-hidden="true"
+        ></i>
+        <h3>Registrar Movimiento de Kardex</h3>
+      </div>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarModal()"
+        title="Cerrar ventana"
+      >
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <!-- Alertas de error o éxito -->
+      <div
+        class="feedback-banner"
+        *ngIf="mensajeAlerta()"
+        [class.banner-error]="mensajeAlerta()?.tipo === 'error'"
+        [class.banner-exito]="mensajeAlerta()?.tipo === 'exito'"
+      >
+        <i
+          [class]="
+            mensajeAlerta()?.tipo === 'error'
+              ? 'ti ti-alert-circle'
+              : 'ti ti-circle-check'
+          "
+          aria-hidden="true"
+        ></i>
+        <span>{{ mensajeAlerta()?.texto }}</span>
+      </div>
+
+      <!-- Formulario de registro de movimientos -->
+      <div class="form-group" style="margin-bottom: 12px">
+        <label for="productoMovimiento"
+          >Insumo / Artículo a Mover <span class="req">*</span></label
+        >
+        <select
+          id="productoMovimiento"
+          [(ngModel)]="nuevoMovimiento.productoId"
+          class="input-control"
+        >
+          @for (prod of catalogoProductos(); track prod.id) {
+            <option [value]="prod.id">
+              {{ prod.nombre }} (Disponible: {{ getStockDeProducto(prod.id) }}
+              {{ prod.unidadMedida }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="tipoMovimiento"
+            >Tipo de Movimiento <span class="req">*</span></label
+          >
+          <select
+            id="tipoMovimiento"
+            [(ngModel)]="nuevoMovimiento.tipo"
+            (change)="onTipoMovimientoChange()"
+            class="input-control"
+          >
+            <option value="ENTRADA">Entrada</option>
+            <option value="SALIDA">Salida</option>
+            <option value="TRASLADO">Traslado a Establecimiento</option>
+            <option value="DEVOLUCION">Devolución</option>
+            <option value="AJUSTE">Ajuste de Auditoría</option>
+          </select>
+        </div>
+
+        <!-- Cantidad seleccionada con máximo disponible -->
+        <div class="form-group flex-1">
+          <label for="cantidadMovimiento">
+            Cantidad <span class="req">*</span>
+            <small
+              class="stock-disponible-hint"
+              *ngIf="
+                nuevoMovimiento.tipo === 'SALIDA' ||
+                nuevoMovimiento.tipo === 'TRASLADO'
+              "
+            >
+              (Máx:
+              {{
+                getStockDeProducto(nuevoMovimiento.productoId || producto().id)
+              }})
+            </small>
+          </label>
+          <input
+            id="cantidadMovimiento"
+            type="number"
+            min="1"
+            [(ngModel)]="nuevoMovimiento.cantidad"
+            class="input-control"
+            placeholder="Ej: 15"
+          />
+        </div>
+      </div>
+
+      <!-- Origen / Destino predefinidos -->
+      <div class="form-group">
+        <label for="origenDestino"
+          >Origen / Destino <span class="req">*</span></label
+        >
+        <input
+          id="origenDestino"
+          type="text"
+          list="destinosSugeridos"
+          [(ngModel)]="nuevoMovimiento.origenDestino"
+          class="input-control"
+          placeholder="Ej: → Liceo Bicentenario"
+        />
+        <datalist id="destinosSugeridos">
+          <option
+            *ngFor="let opt of opcionesDestinoSugeridas[nuevoMovimiento.tipo]"
+            [value]="opt"
+          ></option>
+        </datalist>
+      </div>
+
+      <!-- Documento de referencia y responsable -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="docReferencia">N° Documento / Guía / Factura</label>
+          <input
+            id="docReferencia"
+            type="text"
+            [(ngModel)]="nuevoMovimiento.documentoReferencia"
+            class="input-control"
+          />
+        </div>
+
+        <div class="form-group flex-1">
+          <label>Responsable</label>
+          <input
+            type="text"
+            [value]="currentUser().fullName || currentUser().name"
+            class="input-control disabled-input"
+            disabled
+          />
+        </div>
+      </div>
+
+      <!-- Observaciones o motivo del movimiento -->
+      <div class="form-group">
+        <label for="observaciones">Observaciones / Motivo</label>
+        <textarea
+          id="observaciones"
+          rows="2"
+          [(ngModel)]="nuevoMovimiento.observaciones"
+          class="input-control textarea-control"
+          placeholder="Detalle o justificación del despacho/ingreso"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Botones de cancelar y registrar en Kardex-->
+    <footer class="modal-footer">
+      <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button type="button" class="btn-guardar" (click)="guardarMovimiento()">
+        <i class="ti ti-device-floppy" aria-hidden="true"></i>
+        <span>Registrar en Kardex</span>
+      </button>
+    </footer>
+  </div>
+</div>
