@@ -20,6 +20,7 @@ export interface MovimientoKardex {
   balance: number;
   documentoReferencia?: string;
   observaciones?: string;
+  productoId?: string;
 }
 
 export interface ProductoKardex {
@@ -30,6 +31,8 @@ export interface ProductoKardex {
   categoria: string;
   unidadMedida: string;
   stockMinimoAlerta: number;
+  documentoReferencia?: string;
+  stockInicial?: number;
 }
 
 export interface NuevoMovimientoDTO {
@@ -38,4 +41,5 @@ export interface NuevoMovimientoDTO {
   origenDestino: string;
   documentoReferencia?: string;
   observaciones?: string;
+  productoId?: string;
 }

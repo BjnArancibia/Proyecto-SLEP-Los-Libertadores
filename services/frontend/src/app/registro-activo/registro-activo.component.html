@@ -64,7 +64,7 @@
 
   <!-- VISTA DE BODEGA / KARDEX (RF-04) -->
   <main class="main" *ngIf="opcionActiva === 'Bodega'" style="padding: 0">
-    <app-kardex></app-kardex>
+    <app-bodega></app-bodega>
   </main>
 
   <!-- VISTA DE ACTIVOS FIJOS / FORMULARIO -->
@@ -443,9 +443,9 @@
           aria-hidden="true"
         ></i>
         <span>Bitácora Auditable de Transacciones</span>
-        <span class="badge-tag tag-bodega" style="margin-left: 8px;">RF-05 Conforme</span>
+        >
       </div>
-      <div class="topbar-actions" style="display: flex; gap: 8px;">
+      <div class="topbar-actions" style="display: flex; gap: 8px">
         <button
           type="button"
           class="btn-sm btn-outline"
@@ -467,9 +467,16 @@
 
     <div class="form-area">
       <!-- Mensaje de Feedback -->
-      <div *ngIf="mensajeFeedback()" class="alert-box alert-{{ mensajeFeedback()?.tipo }}" style="margin-bottom: 16px;">
+      <div
+        *ngIf="mensajeFeedback()"
+        class="alert-box alert-{{ mensajeFeedback()?.tipo }}"
+        style="margin-bottom: 16px"
+      >
         <i class="ti ti-check" *ngIf="mensajeFeedback()?.tipo === 'exito'"></i>
-        <i class="ti ti-alert-triangle" *ngIf="mensajeFeedback()?.tipo === 'error'"></i>
+        <i
+          class="ti ti-alert-triangle"
+          *ngIf="mensajeFeedback()?.tipo === 'error'"
+        ></i>
         <span>{{ mensajeFeedback()?.texto }}</span>
       </div>
 
@@ -490,14 +497,18 @@
           </div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon icon-existencias"><i class="ti ti-building-warehouse"></i></div>
+          <div class="kpi-icon icon-existencias">
+            <i class="ti ti-building-warehouse"></i>
+          </div>
           <div class="kpi-info">
             <span class="kpi-num">{{ statsBitacora.existencias }}</span>
             <span class="kpi-label">Operaciones de Existencias</span>
           </div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon icon-solicitudes"><i class="ti ti-arrows-exchange"></i></div>
+          <div class="kpi-icon icon-solicitudes">
+            <i class="ti ti-arrows-exchange"></i>
+          </div>
           <div class="kpi-info">
             <span class="kpi-num">{{ statsBitacora.solicitudes }}</span>
             <span class="kpi-label">Flujos de Movimiento</span>
@@ -506,7 +517,7 @@
       </div>
 
       <!-- Barra de Filtros y Búsqueda -->
-      <section class="section" style="margin-bottom: 16px;">
+      <section class="section" style="margin-bottom: 16px">
         <div class="bitacora-filtros-bar">
           <div class="filtro-busqueda">
             <i class="ti ti-search search-icon"></i>
@@ -521,7 +532,11 @@
           <div class="filtro-selects">
             <div class="select-group">
               <label><i class="ti ti-category"></i> Módulo:</label>
-              <select [value]="filtroBitacoraModulo()" (change)="onFiltroModuloChange($event)" class="select-custom">
+              <select
+                [value]="filtroBitacoraModulo()"
+                (change)="onFiltroModuloChange($event)"
+                class="select-custom"
+              >
                 <option value="TODOS">Todos los Módulos</option>
                 <option value="ACTIVOS">Activos Fijos</option>
                 <option value="EXISTENCIAS">Existencias (Kardex)</option>
@@ -530,7 +545,11 @@
             </div>
             <div class="select-group">
               <label><i class="ti ti-check"></i> Decisión:</label>
-              <select [value]="filtroBitacoraDecision()" (change)="onFiltroDecisionChange($event)" class="select-custom">
+              <select
+                [value]="filtroBitacoraDecision()"
+                (change)="onFiltroDecisionChange($event)"
+                class="select-custom"
+              >
                 <option value="TODAS">Todas las Decisiones</option>
                 <option value="REGISTRADO">Registrado</option>
                 <option value="ACTUALIZADO">Actualizado</option>
@@ -546,10 +565,22 @@
 
       <!-- Tabla Principal de Transacciones Auditables -->
       <section class="section">
-        <div class="sec-title" style="display: flex; justify-content: space-between; align-items: center;">
-          <span><i class="ti ti-shield-check" aria-hidden="true"></i> Registro Inmutable de Operaciones (RF-05)</span>
-          <span style="font-size: 12px; color: #64748b; font-weight: normal;">
-            Mostrando <strong>{{ transaccionesBitacora.length }}</strong> transacciones auditadas
+        <div
+          class="sec-title"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span
+            ><i class="ti ti-shield-check" aria-hidden="true"></i> Registro de
+            Operaciones</span
+          >
+          <span style="font-size: 12px; color: #64748b; font-weight: normal">
+            Mostrando
+            <strong>{{ transaccionesBitacora.length }}</strong> transacciones
+            auditadas
           </span>
         </div>
         <div class="table-solicitudes-wrap">
@@ -563,39 +594,69 @@
                 <th>Acción Ejecutada</th>
                 <th>Decisión</th>
                 <th>Justificación</th>
-                <th style="text-align: center;">Trazabilidad</th>
+                <th style="text-align: center">Trazabilidad</th>
               </tr>
             </thead>
             <tbody>
               @for (t of transaccionesBitacora; track t.id) {
                 <tr>
                   <td>
-                    <span class="badge-folio" (click)="abrirDetalleTransaccion(t)" title="Ver detalle de auditoría">
+                    <span
+                      class="badge-folio"
+                      (click)="abrirDetalleTransaccion(t)"
+                      title="Ver detalle de auditoría"
+                    >
                       <i class="ti ti-file-text"></i> {{ t.folio }}
                     </span>
                   </td>
-                  <td style="white-space: nowrap; font-size: 12px; color: #334155;">{{ t.fecha_hora }}</td>
-                  <td>
-                    <div style="font-weight: 600; font-size: 12.5px; color: #0f172a;">{{ t.usuario_nombre }}</div>
-                    <span class="badge-tag tag-pendiente" style="font-size: 10px;">{{ t.usuario_perfil }}</span>
+                  <td
+                    style="white-space: nowrap; font-size: 12px; color: #334155"
+                  >
+                    {{ t.fecha_hora }}
                   </td>
                   <td>
-                    <span class="badge-modulo badge-mod-{{ t.modulo.toLowerCase() }}">
+                    <div
+                      style="
+                        font-weight: 600;
+                        font-size: 12.5px;
+                        color: #0f172a;
+                      "
+                    >
+                      {{ t.usuario_nombre }}
+                    </div>
+                    <span
+                      class="badge-tag tag-pendiente"
+                      style="font-size: 10px"
+                      >{{ t.usuario_perfil }}</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="badge-modulo badge-mod-{{
+                        t.modulo.toLowerCase()
+                      }}"
+                    >
                       {{ t.modulo }}
                     </span>
                   </td>
-                  <td style="font-weight: 500; font-size: 12.5px; color: #1e293b;">
+                  <td
+                    style="font-weight: 500; font-size: 12.5px; color: #1e293b"
+                  >
                     {{ t.accion }}
                   </td>
                   <td>
-                    <span class="badge-decision badge-dec-{{ t.decision.toLowerCase() }}">
+                    <span
+                      class="badge-decision badge-dec-{{
+                        t.decision.toLowerCase()
+                      }}"
+                    >
                       {{ t.decision }}
                     </span>
                   </td>
                   <td class="col-justificacion" title="{{ t.justificacion }}">
-                    {{ t.justificacion || '—' }}
+                    {{ t.justificacion || "—" }}
                   </td>
-                  <td style="text-align: center; white-space: nowrap;">
+                  <td style="text-align: center; white-space: nowrap">
                     <button
                       type="button"
                       class="btn-ver-diff"
@@ -609,9 +670,20 @@
               }
               @if (transaccionesBitacora.length === 0) {
                 <tr>
-                  <td colspan="8" style="text-align: center; color: #94a3b8; padding: 36px">
-                    <i class="ti ti-file-search" style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
-                    No se encontraron transacciones en la bitácora con los filtros seleccionados.
+                  <td
+                    colspan="8"
+                    style="text-align: center; color: #94a3b8; padding: 36px"
+                  >
+                    <i
+                      class="ti ti-file-search"
+                      style="
+                        font-size: 32px;
+                        display: block;
+                        margin-bottom: 8px;
+                      "
+                    ></i>
+                    No se encontraron transacciones en la bitácora con los
+                    filtros seleccionados.
                   </td>
                 </tr>
               }
@@ -705,7 +777,8 @@
             Auditoría de Transacción: {{ transaccionSeleccionada()?.folio }}
           </span>
           <span class="modal-subtitle">
-            RF-05 — Registro Histórico de Operación y Trazabilidad de Valores Anteriores y Posteriores
+            RF-05 — Registro Histórico de Operación y Trazabilidad de Valores
+            Anteriores y Posteriores
           </span>
         </div>
         <button
@@ -723,45 +796,77 @@
         <div class="audit-meta-grid">
           <div class="audit-meta-item">
             <span class="meta-label">Folio Institucional</span>
-            <span class="meta-value bold font-mono">{{ transaccionSeleccionada()?.folio }}</span>
+            <span class="meta-value bold font-mono">{{
+              transaccionSeleccionada()?.folio
+            }}</span>
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Fecha y Hora</span>
-            <span class="meta-value">{{ transaccionSeleccionada()?.fecha_hora }}</span>
+            <span class="meta-value">{{
+              transaccionSeleccionada()?.fecha_hora
+            }}</span>
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Usuario Responsable</span>
-            <span class="meta-value bold">{{ transaccionSeleccionada()?.usuario_nombre }}</span>
+            <span class="meta-value bold">{{
+              transaccionSeleccionada()?.usuario_nombre
+            }}</span>
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Perfil / Rol</span>
-            <span class="meta-value"><span class="badge-tag tag-pendiente">{{ transaccionSeleccionada()?.usuario_perfil }}</span></span>
+            <span class="meta-value"
+              ><span class="badge-tag tag-pendiente">{{
+                transaccionSeleccionada()?.usuario_perfil
+              }}</span></span
+            >
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Módulo</span>
-            <span class="meta-value"><span class="badge-modulo badge-mod-{{ transaccionSeleccionada()?.modulo?.toLowerCase() }}">{{ transaccionSeleccionada()?.modulo }}</span></span>
+            <span class="meta-value"
+              ><span
+                class="badge-modulo badge-mod-{{
+                  transaccionSeleccionada()?.modulo?.toLowerCase()
+                }}"
+                >{{ transaccionSeleccionada()?.modulo }}</span
+              ></span
+            >
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Decisión Tomada</span>
-            <span class="meta-value"><span class="badge-decision badge-dec-{{ transaccionSeleccionada()?.decision?.toLowerCase() }}">{{ transaccionSeleccionada()?.decision }}</span></span>
+            <span class="meta-value"
+              ><span
+                class="badge-decision badge-dec-{{
+                  transaccionSeleccionada()?.decision?.toLowerCase()
+                }}"
+                >{{ transaccionSeleccionada()?.decision }}</span
+              ></span
+            >
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">Acción Ejecutada</span>
-            <span class="meta-value bold">{{ transaccionSeleccionada()?.accion }}</span>
+            <span class="meta-value bold">{{
+              transaccionSeleccionada()?.accion
+            }}</span>
           </div>
           <div class="audit-meta-item">
             <span class="meta-label">IP de Origen</span>
-            <span class="meta-value font-mono">{{ transaccionSeleccionada()?.ip_origen || '127.0.0.1' }}</span>
+            <span class="meta-value font-mono">{{
+              transaccionSeleccionada()?.ip_origen || "127.0.0.1"
+            }}</span>
           </div>
         </div>
 
         <!-- Justificación Obligatoria -->
         <div class="audit-justificacion-card">
           <div class="justificacion-header">
-            <i class="ti ti-message-2"></i> Justificación de la Operación / Decisión:
+            <i class="ti ti-message-2"></i> Justificación de la Operación /
+            Decisión:
           </div>
           <div class="justificacion-body">
-            "{{ transaccionSeleccionada()?.justificacion || 'Sin justificación declarada' }}"
+            "{{
+              transaccionSeleccionada()?.justificacion ||
+                "Sin justificación declarada"
+            }}"
           </div>
         </div>
 
@@ -769,7 +874,10 @@
         <div class="audit-diff-section">
           <div class="diff-section-header">
             <i class="ti ti-arrows-exchange"></i>
-            <span>Comparación de Valores Anteriores vs. Posteriores del Registro</span>
+            <span
+              >Comparación de Valores Anteriores vs. Posteriores del
+              Registro</span
+            >
           </div>
 
           <!-- Caso 1: Alta / Registro Inicial (Valores Anteriores es null) -->
@@ -778,7 +886,11 @@
               <i class="ti ti-circle-check"></i>
               <div>
                 <strong>Alta de Registro (Creación Inicial)</strong>
-                <p>No existen valores anteriores en la base de datos para esta transacción. A continuación se detallan los valores registrados inicialmente:</p>
+                <p>
+                  No existen valores anteriores en la base de datos para esta
+                  transacción. A continuación se detallan los valores
+                  registrados inicialmente:
+                </p>
               </div>
             </div>
 
@@ -791,10 +903,23 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (clave of obtenerClavesComparacion(transaccionSeleccionada()); track clave) {
+                  @for (
+                    clave of obtenerClavesComparacion(
+                      transaccionSeleccionada()
+                    );
+                    track clave
+                  ) {
                     <tr>
-                      <td class="diff-col-campo">{{ formatearNombreCampo(clave) }}</td>
-                      <td class="diff-val-posterior bold">{{ transaccionSeleccionada()?.valores_posteriores?.[clave] ?? '—' }}</td>
+                      <td class="diff-col-campo">
+                        {{ formatearNombreCampo(clave) }}
+                      </td>
+                      <td class="diff-val-posterior bold">
+                        {{
+                          transaccionSeleccionada()?.valores_posteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
+                      </td>
                     </tr>
                   }
                 </tbody>
@@ -808,7 +933,10 @@
               <i class="ti ti-edit"></i>
               <div>
                 <strong>Trazabilidad de Cambios (Auditoría Delta)</strong>
-                <p>Se resaltan las diferencias entre el estado previo de los atributos y el estado posterior resultante tras la operación:</p>
+                <p>
+                  Se resaltan las diferencias entre el estado previo de los
+                  atributos y el estado posterior resultante tras la operación:
+                </p>
               </div>
             </div>
 
@@ -819,24 +947,59 @@
                     <th>Campo / Atributo</th>
                     <th>Valor Anterior</th>
                     <th>Valor Posterior Resultante</th>
-                    <th style="text-align: center;">Estado</th>
+                    <th style="text-align: center">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @for (clave of obtenerClavesComparacion(transaccionSeleccionada()); track clave) {
-                    <tr [class.fila-modificada]="esValorModificado(clave, transaccionSeleccionada())">
-                      <td class="diff-col-campo">{{ formatearNombreCampo(clave) }}</td>
-                      <td class="diff-val-anterior" [class.val-tachado]="esValorModificado(clave, transaccionSeleccionada())">
-                        {{ transaccionSeleccionada()?.valores_anteriores?.[clave] ?? '—' }}
+                  @for (
+                    clave of obtenerClavesComparacion(
+                      transaccionSeleccionada()
+                    );
+                    track clave
+                  ) {
+                    <tr
+                      [class.fila-modificada]="
+                        esValorModificado(clave, transaccionSeleccionada())
+                      "
+                    >
+                      <td class="diff-col-campo">
+                        {{ formatearNombreCampo(clave) }}
                       </td>
-                      <td class="diff-val-posterior" [class.val-destacado]="esValorModificado(clave, transaccionSeleccionada())">
-                        {{ transaccionSeleccionada()?.valores_posteriores?.[clave] ?? '—' }}
+                      <td
+                        class="diff-val-anterior"
+                        [class.val-tachado]="
+                          esValorModificado(clave, transaccionSeleccionada())
+                        "
+                      >
+                        {{
+                          transaccionSeleccionada()?.valores_anteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
                       </td>
-                      <td style="text-align: center;">
-                        @if (esValorModificado(clave, transaccionSeleccionada())) {
-                          <span class="badge-cambio badge-cambio-si">Modificado</span>
+                      <td
+                        class="diff-val-posterior"
+                        [class.val-destacado]="
+                          esValorModificado(clave, transaccionSeleccionada())
+                        "
+                      >
+                        {{
+                          transaccionSeleccionada()?.valores_posteriores?.[
+                            clave
+                          ] ?? "—"
+                        }}
+                      </td>
+                      <td style="text-align: center">
+                        @if (
+                          esValorModificado(clave, transaccionSeleccionada())
+                        ) {
+                          <span class="badge-cambio badge-cambio-si"
+                            >Modificado</span
+                          >
                         } @else {
-                          <span class="badge-cambio badge-cambio-no">Sin cambio</span>
+                          <span class="badge-cambio badge-cambio-no"
+                            >Sin cambio</span
+                          >
                         }
                       </td>
                     </tr>
@@ -849,22 +1012,30 @@
 
         <!-- Acordeón de Auditoría Técnica (JSON Crudo) -->
         <details class="audit-raw-json">
-          <summary><i class="ti ti-code"></i> Ver Estructura JSON Cruda (Inspección Técnica RF-05)</summary>
+          <summary><i class="ti ti-code"></i> Ver Estructura JSON</summary>
           <div class="json-grid">
             <div class="json-col">
               <span class="json-title">Valores Anteriores (JSON):</span>
-              <pre>{{ transaccionSeleccionada()?.valores_anteriores | json }}</pre>
+              <pre>{{
+                transaccionSeleccionada()?.valores_anteriores | json
+              }}</pre>
             </div>
             <div class="json-col">
               <span class="json-title">Valores Posteriores (JSON):</span>
-              <pre>{{ transaccionSeleccionada()?.valores_posteriores | json }}</pre>
+              <pre>{{
+                transaccionSeleccionada()?.valores_posteriores | json
+              }}</pre>
             </div>
           </div>
         </details>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-sm btn-outline" (click)="cerrarDetalleTransaccion()">
+        <button
+          type="button"
+          class="btn-sm btn-outline"
+          (click)="cerrarDetalleTransaccion()"
+        >
           Cerrar Auditoría
         </button>
       </div>

@@ -23,7 +23,7 @@ import { BitacoraService } from "../services/bitacora.service";
 import { TransaccionBitacora, ModuloBitacora } from "../models/bitacora.model";
 import { Router } from "@angular/router";
 import { FlujoAprobacionComponent } from "../flujo-aprobacion/flujo-aprobacion.component";
-import { KardexComponent } from "../kardex/kardex.component";
+import { BodegaComponent } from "../bodega/bodega.component";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 
@@ -34,7 +34,7 @@ import JsBarcode from "jsbarcode";
     CommonModule,
     ReactiveFormsModule,
     FlujoAprobacionComponent,
-    KardexComponent,
+    BodegaComponent,
   ],
   templateUrl: "./registro-activo.component.html",
   styleUrls: ["./registro-activo.component.css"],
