@@ -45,3 +45,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
 
+use Illuminate\Support\Facades\DB;
+
+Route::get('/health', function () {
+    $dbStatus = 'disconnected';
+    try {
+        DB::connection()->getPdo();
+        $dbStatus = 'connected';
+    } catch (\Exception $e) {
+        $dbStatus = 'error: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'status'    => ($dbStatus === 'connected') ? 'UP' : 'DEGRADED',
+        'timestamp' => now()->toIso8601String(),
+        'database'  => $dbStatus,
+        'hostname'  => gethostname()
+    ], ($dbStatus === 'connected') ? 200 : 503);
+});
