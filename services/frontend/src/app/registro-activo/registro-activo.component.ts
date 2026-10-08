@@ -44,7 +44,7 @@ export class RegistroActivoComponent
   implements OnInit
 {
   activoForm!: FormGroup;
-  apiUrl = "http://127.0.0.1:8000/api/activos";
+  apiUrl = "/api/activos"; // Endpoint para guardar activos en el backend
 
   // Controla qué vista se muestra en el área principal manteniendo la misma sidebar
   opcionActiva = "Activos Fijos";
