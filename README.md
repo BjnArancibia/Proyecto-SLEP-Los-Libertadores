@@ -4,7 +4,7 @@
 
 Plataforma web desarrollada para la administración centralizada de activos fijos, control de existencias en bodega y trazabilidad del flujo de solicitudes del **Servicio Local de Educación Pública (SLEP) Los Libertadores** (Licitación ID: `1305541-3-LE26`).
 
-El sistema garantiza la continuidad operacional mediante una arquitectura de alta disponibilidad desplegada en Google Cloud Platform (GCP), con balanceo de carga, segregación de bases de datos, auditoría inmutable de transacciones y un procedimiento automatizado de respaldo y recuperación ante desastres[cite: 1, 2, 3, 7].
+El sistema garantiza la continuidad operacional mediante una arquitectura de alta disponibilidad desplegada en Google Cloud Platform (GCP), con balanceo de carga, segregación de bases de datos, auditoría inmutable de transacciones y un procedimiento automatizado de respaldo y recuperación ante desastres.
 
 ---
 
@@ -12,9 +12,9 @@ El sistema garantiza la continuidad operacional mediante una arquitectura de alt
 
 El sistema adopta una arquitectura cliente-servidor distribuida en dos máquinas virtuales (Compute Engine) interconectadas mediante una VPC privada (`10.194.0.0/20`):
 
-- **Edge Proxy & Frontend (VM 1):** Servidor perimetral Nginx que actúa como proxy inverso y balanceador de carga hacia las réplicas backend, además de servir los archivos compilados de la interfaz en Angular[cite: 1, 2, 6].
+- **Edge Proxy & Frontend (VM 1):** Servidor perimetral Nginx que actúa como proxy inverso y balanceador de carga hacia las réplicas backend, además de servir los archivos compilados de la interfaz en Angular.
 - **Backend API (VM 1 y VM 2):** Réplicas de la API REST construidas en **Laravel 11 (PHP 8.3)** que procesan las solicitudes de negocio bajo balanceo Round Robin.
-- **Persistencia de Datos (VM 1):** Motor relacional **MySQL** (`slep_db`) aislado para consumo exclusivo interno de las réplicas del clúster[cite: 1, 2, 5].
+- **Persistencia de Datos (VM 1):** Motor relacional **MySQL** (`slep_db`) aislado para consumo exclusivo interno de las réplicas del clúster.
 
 ```text
 proyecto-slep-los-libertadores/
