@@ -1,26 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-DB_USER="slep_user"
-DB_PASS="slep1234"
-DB_NAME="slep_db"
-BACKUP_DIR="/var/backups/mysql"
-
-# Determinar archivo a restaurar: parámetro manual ($1) o el más reciente
-if [ -n "$1" ]; then
-    BACKUP_FILE="$1"
-else
-    BACKUP_FILE=$(ls -t ${BACKUP_DIR}/backup_${DB_NAME}_*.sql.gz 2>/dev/null | head -n 1)
-fi
-
-if [ ! -f "$BACKUP_FILE" ]; then
-    echo "Error: No se encontró ningún archivo de respaldo en: $BACKUP_FILE"
+if [ -z "$1" ]; then
+    echo "Uso: $0 <archivo_backup.sql.gz o gs://bucket/archivo.sql.gz>"
     exit 1
 fi
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando restauración desde: $BACKUP_FILE hacia la base de datos ${DB_NAME}..."
+INPUT_FILE="$1"
+ENV_FILE="/var/www/slep-app/services/backend/api-inventario/.env"
 
-# Descomprimir al vuelo e inyectar en MySQL
-gunzip -c "$BACKUP_FILE" | mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME"
+if [ -f "$ENV_FILE" ]; then
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] ¡Restauración completada con éxito!"
+TMP_FILE="/tmp/restore_db_temp.sql.gz"
+
+if [[ "$INPUT_FILE" == gs://* ]]; then
+    echo "Descargando respaldo desde Google Cloud Storage..."
+    gcloud storage cp "$INPUT_FILE" "$TMP_FILE"
+    TARGET="$TMP_FILE"
+else
+    TARGET="$INPUT_FILE"
+fi
+
+echo "Restaurando base de datos en Cloud SQL ($DB_HOST)..."
+gunzip -c "$TARGET" | mysql -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE"
+
+if [ -f "$TMP_FILE" ]; then
+    rm -f "$TMP_FILE"
+fi
+
+echo "Base de datos restaurada exitosamente."
