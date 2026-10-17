@@ -1,25 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-DB_USER="slep_user"
-DB_PASS="slep1234"
-DB_NAME="slep_db"
-BACKUP_DIR="/var/backups/mysql"
-DATE=$(date +%Y%m%d_%H%M%S)
-FILE_NAME="backup_${DB_NAME}_${DATE}.sql"
+FECHA=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/var/backups/slep"
+BUCKET_NAME="slep-backups-proyectoadminderedes"
+ENV_FILE="/var/www/slep-app/services/backend/api-inventario/.env"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando respaldo de la base de datos ${DB_NAME}..."
+if [ -f "$ENV_FILE" ]; then
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
 
-# Crear directorio de respaldos si no existe
 mkdir -p "$BACKUP_DIR"
 
-# Generar volcado lógico y comprimir
-mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "${BACKUP_DIR}/${FILE_NAME}"
-gzip -f "${BACKUP_DIR}/${FILE_NAME}"
+echo "=== [1/4] Respaldando Base de Datos Cloud SQL ($DB_DATABASE) ==="
+mysqldump -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" \
+    --set-gtid-purged=OFF \
+    --single-transaction \
+    --quick "$DB_DATABASE" | gzip > "$BACKUP_DIR/db_${FECHA}.sql.gz"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Respaldo creado exitosamente: ${BACKUP_DIR}/${FILE_NAME}.gz"
+echo "=== [2/4] Respaldando Backend (Storage y Variables de Entorno) ==="
+tar -czf "$BACKUP_DIR/backend_${FECHA}.tar.gz" \
+    -C /var/www/slep-app/services/backend/api-inventario \
+    storage/app/public .env
 
-# Política de retención: purgar respaldos con más de 7 días
-find "$BACKUP_DIR" -type f -name "backup_${DB_NAME}_*.sql.gz" -mtime +7 -exec rm {} \;
+echo "=== [3/4] Respaldando Frontend (Artefactos de build) ==="
+if [ -d "/var/www/slep-app/services/frontend/dist" ]; then
+    tar -czf "$BACKUP_DIR/frontend_${FECHA}.tar.gz" \
+        -C /var/www/slep-app/services/frontend dist
+fi
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Limpieza completada (retención: 7 días)."
+echo "=== [4/4] Sincronizando copias con Google Cloud Storage ==="
+gcloud storage cp "$BACKUP_DIR"/*_${FECHA}* "gs://$BUCKET_NAME/"
+
+echo "=== Limpieza local: conservando últimos 3 días ==="
+find "$BACKUP_DIR" -type f -mtime +3 -delete
+
+echo "Proceso de respaldo finalizado con éxito: $FECHA"
