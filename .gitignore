@@ -1,0 +1,47 @@
+# Archivos de entorno y secretos
+.env
+.env.local
+.env.*.local
+.env.backup
+.env.production
+!.env.example
+
+# Directorios de dependencias
+node_modules/
+vendor/
+
+# Artefactos de compilación
+dist/
+.angular/
+/public/build
+/public/hot
+
+# Almacenamiento local y logs de Laravel
+services/backend/api-inventario/storage/logs/*.log
+services/backend/api-inventario/storage/framework/cache/data/*
+services/backend/api-inventario/storage/framework/sessions/*
+services/backend/api-inventario/storage/framework/views/*
+services/backend/api-inventario/bootstrap/cache/*.php
+services/backend/api-inventario/.env
+services/backend/api-inventario/.env.backup
+services/backend/api-inventario/storage/*.key
+
+# Logs generales
+*.log
+npm-debug.log*
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Cobertura y testing
+.phpunit.cache
+.phpunit.result.cache
+coverage/

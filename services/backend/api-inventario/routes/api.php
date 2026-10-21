@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\KardexController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\IaController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/movimientos/reset', [MovimientoController::class, 'reset']);
@@ -19,6 +20,12 @@ Route::prefix('activos')->group(function () {
     Route::post('/', [AssetController::class, 'store']);
     Route::get('/{id}', [AssetController::class, 'show']);
     Route::put('/{id}', [AssetController::class, 'update']);
+});
+
+Route::prefix('ia')->group(function () {
+    Route::post('/sugerir-categoria', [IaController::class, 'sugerirCategoria']);
+    Route::get('/estado', [IaController::class, 'estado']);
+    Route::get('/categorias', [IaController::class, 'categorias']);
 });
 
 Route::prefix('movimientos')->group(function () {
