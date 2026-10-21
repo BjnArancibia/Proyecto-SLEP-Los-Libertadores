@@ -16,10 +16,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Solicitante
-        User::updateOrCreate(['email' => 'carmen.tapia@slep.cl'], [
+        User::updateOrCreate(['email' => 'sol@slep.cl'], [
             'name' => 'Carmen',
             'apellido' => 'Tapia',
-            'email' => 'carmen.tapia@slep.cl',
+            'email' => 'sol@slep.cl',
             'password' => bcrypt('password123'),
             'rol' => 'SOLICITANTE',
             'establecimiento_id' => 1,
@@ -27,10 +27,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. Aprobador
-        User::updateOrCreate(['email' => 'pedro.henriquez@slep.cl'], [
+        User::updateOrCreate(['email' => 'apro@slep.cl'], [
             'name' => 'Pedro',
             'apellido' => 'Henríquez',
-            'email' => 'pedro.henriquez@slep.cl',
+            'email' => 'apro@slep.cl',
             'password' => bcrypt('password123'),
             'rol' => 'APROBADOR',
             'establecimiento_id' => 1,
@@ -38,10 +38,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 3. Encargado de Bodega
-        User::updateOrCreate(['email' => 'rodrigo.soto@slep.cl'], [
+        User::updateOrCreate(['email' => 'bod@slep.cl'], [
             'name' => 'Rodrigo',
             'apellido' => 'Soto',
-            'email' => 'rodrigo.soto@slep.cl',
+            'email' => 'bod@slep.cl',
             'password' => bcrypt('password123'),
             'rol' => 'ENCARGADO_BODEGA',
             'establecimiento_id' => null,

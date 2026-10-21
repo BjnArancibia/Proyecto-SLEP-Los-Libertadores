@@ -9,98 +9,63 @@
   width: 100%;
 }
 
-/* Barra de pruebas de desarrollo  */
-.dev-banner {
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 8px 24px;
+/* Barra superior y selector de solicitudes */
+.topbar-right {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  font-size: 11px;
-  border-bottom: 1px solid #334155;
-  flex-wrap: wrap;
+  gap: 14px;
 }
 
-.dev-left,
-.dev-right {
+.btn-reset-topbar {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-reset-topbar:hover {
+  background: #f1f5f9;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.solicitud-selector {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.dev-badge {
-  background: #2563eb;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.solicitud-selector label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
 }
 
-.dev-label {
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.dev-users {
-  display: flex;
-  gap: 5px;
-}
-
-.btn-mock-user {
-  background: #1e293b;
-  color: #cbd5e1;
-  border: 1px solid #475569;
-  border-radius: 5px;
-  padding: 3px 8px;
-  font-size: 10.5px;
+.solicitud-select {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.btn-mock-user:hover {
-  background: #334155;
-  color: #fff;
-}
-
-.btn-mock-user.active {
-  background: #059669;
-  border-color: #10b981;
-  color: #fff;
-  font-weight: 600;
-}
-
-.dev-select {
-  background: #1e293b;
-  color: #f8fafc;
-  border: 1px solid #475569;
-  border-radius: 5px;
-  padding: 3px 8px;
-  font-size: 11px;
-  outline: none;
-}
-
-.btn-reset {
-  background: #334155;
-  color: #cbd5e1;
-  border: none;
-  border-radius: 5px;
-  padding: 4px 9px;
-  font-size: 10.5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-reset:hover {
-  background: #475569;
-  color: #fff;
+.solicitud-select:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
 /* Toast feedback */

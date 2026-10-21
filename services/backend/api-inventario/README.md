@@ -22,9 +22,9 @@ La API quedará levantada por defecto en `http://127.0.0.1:8000`.
 
 El comando `--seed` crea cuentas predefinidas para que no tengas que registrarte manualmente y puedas probar los diferentes roles del sistema. La contraseña para todos es **`password123`**:
 
-- **Solicitante:** `carmen.tapia@slep.cl` (Escuela Los Andes)
-- **Aprobador:** `pedro.henriquez@slep.cl` (Escuela Los Andes)
-- **Encargado de Bodega:** `rodrigo.soto@slep.cl` (Bodega Central SLEP)
+- **Solicitante:** `sol@slep.cl` (Escuela Los Andes)
+- **Aprobador:** `apro@slep.cl` (Escuela Los Andes)
+- **Encargado de Bodega:** `bod@slep.cl` (Bodega Central SLEP)
 - **Administrador:** `admin@slep.cl` (Administración Central)
 
 ---

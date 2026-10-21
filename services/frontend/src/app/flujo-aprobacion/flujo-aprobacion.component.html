@@ -1,50 +1,4 @@
 <div class="flujo-container">
-  <!-- Barra de pruebas -->
-  <div class="dev-banner">
-    <div class="dev-left">
-      <span class="dev-badge"
-        ><i class="ti ti-shield-check"></i> RF-03 Segregación:</span
-      >
-      <span class="dev-label">Simular sesión como:</span>
-      <div class="dev-users">
-        @for (u of usuariosMock; track u.id) {
-          <button
-            class="btn-mock-user"
-            [class.active]="usuarioActual()?.id === u.id"
-            (click)="cambiarPerfilPrueba(u.id)"
-            [title]="u.rol + ' - ' + u.establecimientoNombre"
-          >
-            {{ u.nombre }} ({{
-              u.rol === "ENCARGADO_BODEGA" ? "BODEGA" : u.rol
-            }})
-          </button>
-        }
-      </div>
-    </div>
-
-    <div class="dev-right">
-      <span class="dev-label">Solicitud:</span>
-      <select
-        class="dev-select"
-        [ngModel]="solicitudActual()?.id"
-        (ngModelChange)="seleccionarSolicitud($event)"
-      >
-        @for (s of todasSolicitudes(); track s.id) {
-          <option [value]="s.id">
-            {{ s.id }} ({{ s.tipo }} - Solicitó: {{ s.solicitanteNombre }})
-          </option>
-        }
-      </select>
-      <button
-        class="btn-reset"
-        (click)="reiniciarDemo()"
-        title="Reiniciar datos de prueba"
-      >
-        <i class="ti ti-refresh"></i> Reset
-      </button>
-    </div>
-  </div>
-
   <!-- Mensaje de feedback -->
   @if (mensajeFeedback()) {
     <div class="feedback-toast" [class]="mensajeFeedback()?.tipo">
@@ -69,30 +23,58 @@
         </div>
       </div>
 
-      <span
-        class="pill"
-        [ngClass]="{
-          review: sol.estado === 'PENDIENTE_REVISION',
-          approved: sol.estado === 'APROBADO',
-          rejected: sol.estado === 'RECHAZADO',
-          executed: sol.estado === 'EJECUTADO',
-        }"
-      >
-        @switch (sol.estado) {
-          @case ("PENDIENTE_REVISION") {
-            En revisión
+      <div class="topbar-right">
+        <button
+          type="button"
+          class="btn-reset-topbar"
+          (click)="reiniciarSolicitudes()"
+          title="Reiniciar y limpiar solicitudes al estado original"
+        >
+          <i class="ti ti-rotate-2" aria-hidden="true"></i>
+          <span>Reiniciar</span>
+        </button>
+
+        <div class="solicitud-selector">
+          <label for="selectSolicitud">Seleccionar solicitud:</label>
+          <select
+            id="selectSolicitud"
+            class="solicitud-select"
+            [ngModel]="solicitudActual()?.id"
+            (ngModelChange)="seleccionarSolicitud($event)"
+          >
+            @for (s of todasSolicitudes(); track s.id) {
+              <option [value]="s.id">
+                #{{ s.id }} ({{ s.tipo }} — {{ s.solicitanteNombre }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <span
+          class="pill"
+          [ngClass]="{
+            review: sol.estado === 'PENDIENTE_REVISION',
+            approved: sol.estado === 'APROBADO',
+            rejected: sol.estado === 'RECHAZADO',
+            executed: sol.estado === 'EJECUTADO',
+          }"
+        >
+          @switch (sol.estado) {
+            @case ("PENDIENTE_REVISION") {
+              En revisión
+            }
+            @case ("APROBADO") {
+              Aprobado
+            }
+            @case ("RECHAZADO") {
+              Rechazado
+            }
+            @case ("EJECUTADO") {
+              Ejecutado / Cerrado
+            }
           }
-          @case ("APROBADO") {
-            Aprobado
-          }
-          @case ("RECHAZADO") {
-            Rechazado
-          }
-          @case ("EJECUTADO") {
-            Ejecutado / Cerrado
-          }
-        }
-      </span>
+        </span>
+      </div>
     </header>
 
     <!-- Opciones de acciones-->

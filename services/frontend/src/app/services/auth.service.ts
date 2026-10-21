@@ -26,43 +26,43 @@ export interface AuthResponse {
 // URL base del backend
 const API_URL = "http://127.0.0.1:8000/api";
 
-// Perfiles mockeados para desarrollo y pruebas del flujo con segregación de funciones (RF-03)
+// Perfiles de usuario institucionales con segregación de funciones (RF-01 / RF-03)
 export const USUARIOS_MOCK: Usuario[] = [
   {
-    id: 101,
+    id: 1,
     nombre: "Carmen",
     apellido: "Tapia",
-    email: "carmen.tapia@slep.cl",
+    email: "sol@slep.cl",
     rol: "SOLICITANTE",
     establecimientoId: 1,
     establecimientoNombre: "Escuela Los Andes",
   },
   {
-    id: 102,
+    id: 2,
     nombre: "Pedro",
     apellido: "Henríquez",
-    email: "pedro.henriquez@slep.cl",
+    email: "apro@slep.cl",
     rol: "APROBADOR",
     establecimientoId: 1,
     establecimientoNombre: "Escuela Los Andes",
   },
   {
-    id: 103,
-    nombre: "Carlos",
-    apellido: "Fuentes",
-    email: "carlos.bodega@slep.cl",
+    id: 3,
+    nombre: "Rodrigo",
+    apellido: "Soto",
+    email: "bod@slep.cl",
     rol: "ENCARGADO_BODEGA",
-    establecimientoId: 2,
+    establecimientoId: null,
     establecimientoNombre: "Bodega Central SLEP",
   },
   {
-    id: 104,
-    nombre: "J.",
-    apellido: "Morales",
-    email: "j.morales@slep.cl",
+    id: 4,
+    nombre: "Admin",
+    apellido: "Sistema",
+    email: "admin@slep.cl",
     rol: "ADMIN",
     establecimientoId: null,
-    establecimientoNombre: "Dirección SLEP Los Libertadores",
+    establecimientoNombre: "Administración Central",
   },
 ];
 

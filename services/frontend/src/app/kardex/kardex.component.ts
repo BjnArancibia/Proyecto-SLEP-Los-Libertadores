@@ -76,6 +76,7 @@ export class KardexComponent {
   };
 
   // Datos reactivos provenientes de KardexService
+  readonly catalogoProductos = this.kardexService.catalogoProductos;
   readonly producto = this.kardexService.producto;
   readonly movimientos = this.kardexService.movimientosFiltrados;
   readonly stockActual = this.kardexService.stockActual;
@@ -84,6 +85,33 @@ export class KardexComponent {
   readonly stockCritico = this.kardexService.stockEsCritico;
   readonly filtroActual = this.kardexService.filtroTipo;
   readonly busquedaTexto = this.kardexService.terminoBusqueda;
+
+  getStockDeProducto(id: string): number {
+    return this.kardexService.getStockDeProducto(id);
+  }
+
+  getNombreProducto(id?: string): string {
+    return this.kardexService.getNombreProducto(id);
+  }
+
+  getNombreProductoCorto(id?: string): string {
+    return this.kardexService.getNombreProductoCorto(id);
+  }
+
+  readonly esVistaConsolidada = computed(
+    () => this.kardexService.productoSeleccionadoId() === "TODOS",
+  );
+
+  readonly articulosCriticosCount = computed(() => {
+    return this.catalogoProductos().filter(
+      (p) => this.getStockDeProducto(p.id) <= p.stockMinimoAlerta,
+    ).length;
+  });
+
+  onCambiarProducto(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value;
+    this.kardexService.seleccionarProducto(val);
+  }
 
   // Datos del usuario logueado en AuthService
   readonly usuarioActual = computed<Usuario | null>(() =>
@@ -133,14 +161,33 @@ export class KardexComponent {
     this.kardexService.exportarCSV();
   }
 
+  // Notificación visual reactiva
+  mensajeNotificacion = signal<{ tipo: "exito" | "error"; texto: string } | null>(
+    null,
+  );
+
+  // Reiniciar y limpiar movimientos de bodega (inmediato y sin bloqueos)
+  reiniciarMovimientos(): void {
+    this.kardexService.restablecerDatos();
+    this.mensajeNotificacion.set({
+      tipo: "exito",
+      texto: "Registros y existencias de bodega reiniciados correctamente al estado original.",
+    });
+    setTimeout(() => {
+      this.mensajeNotificacion.set(null);
+    }, 3500);
+  }
+
   // Manejo Modal
   abrirModal(): void {
+    const pId = this.producto().id;
     this.nuevoMovimiento = {
       tipo: "SALIDA",
       cantidad: 10,
       origenDestino: "→ Liceo Bicentenario",
       documentoReferencia: "",
       observaciones: "",
+      productoId: pId === "TODOS" ? "BOD-001" : pId,
     };
     this.mensajeAlerta.set(null);
     this.mostrarModalMovimiento.set(true);
