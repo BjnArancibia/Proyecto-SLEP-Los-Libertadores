@@ -32,7 +32,8 @@ LABEL description="API REST Laravel 11/12 (PHP 8.3) con soporte PostgreSQL y MyS
 
 # Instalar extensiones necesarias (PostgreSQL, MySQL, OPcache, PCNTL)
 # y eliminar paquetes de compilación para reducir la superficie de la imagen
-RUN apk add --no-cache \
+RUN apk update && apk upgrade --no-cache \
+    && apk add --no-cache \
         libpq \
         ca-certificates \
     && apk add --no-cache --virtual .build-deps \
