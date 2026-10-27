@@ -17,6 +17,7 @@ El sistema adopta una arquitectura desacoplada basada en contenedores ligeros y 
 - **Backend API (`slep-backend`):** API REST desarrollada en **Laravel 11/12 (PHP 8.3 Alpine)** con OPcache, soporte para PostgreSQL / MySQL y auditoría transaccional.
 - **Persistencia de Datos (`slep-database`):** Motor relacional **MySQL 8.0** aislado en la red interna con volumen persistente (`slep-mysql-data`).
 - **Asistente de IA (`slep-ollama`):** Motor de inferencia local oficial de **Ollama** con el modelo ligero `qwen2.5:1.5b` para clasificación patrimonial asistida bajo catálogo oficial.
+- **Panel de Monitoreo (`slep-monitoring`):** Dashboard visual de métricas, salud y logs en tiempo real con **Portainer Community Edition (v2.27.1 Alpine)** en el puerto `:9000`.
 
 ```text
 proyecto-slep-los-libertadores/
@@ -96,6 +97,7 @@ Para levantar el clúster completo con los 5 servicios:
    * Aplicación Web: [http://localhost](http://localhost)
    * Monitoreo de Salud: [http://localhost/api/health](http://localhost/api/health)
    * Estado del Asistente IA: [http://localhost/api/ia/estado](http://localhost/api/ia/estado)
+   * Panel de Monitoreo Portainer: [http://localhost:9000](http://localhost:9000)
 
 Para más detalles sobre la arquitectura de contenedores, consulte [docs/arquitectura.md](./docs/arquitectura.md).
 

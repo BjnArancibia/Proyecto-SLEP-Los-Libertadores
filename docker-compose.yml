@@ -1,9 +1,10 @@
-# Topología de 5 servicios:
-#   1. gateway  : Proxy inverso perimetral Nginx (Puerto 80 perimetral)
-#   2. frontend : SPA Angular 22 compilada en contenedor Nginx no privilegiado
-#   3. backend  : API REST Laravel 11/12 (PHP 8.3 Alpine)
-#   4. database : Persistencia relacional MySQL 8.0
-#   5. ollama   : Motor de inferencia para LLMs locales (qwen2.5:1.5b)
+# Topología de 6 servicios:
+#   1. gateway    : Proxy inverso perimetral Nginx (Puerto 80 perimetral)
+#   2. frontend   : SPA Angular 22 compilada en contenedor Nginx no privilegiado
+#   3. backend    : API REST Laravel 11/12 (PHP 8.3 Alpine)
+#   4. database   : Persistencia relacional MySQL 8.0
+#   5. ollama     : Motor de inferencia para LLMs locales (qwen2.5:1.5b)
+#   6. monitoring : Observabilidad y gestión visual con Portainer CE
 
 services:
   # ----------------------------------------------------------------------------
@@ -166,6 +167,22 @@ services:
       retries: 3
       start_period: 10s
 
+  # ----------------------------------------------------------------------------
+  # 6. Servicio de Monitoreo y Observabilidad (Portainer CE)
+  # Visualización gráfica de métricas de contenedores, CPU, RAM y logs en vivo
+  # ----------------------------------------------------------------------------
+  monitoring:
+    image: portainer/portainer-ce:2.27.1-alpine
+    container_name: slep-monitoring
+    restart: unless-stopped
+    ports:
+      - "${PORTAINER_PORT:-9000}:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    networks:
+      - slep-net
+
 # ----------------------------------------------------------------------------
 # Redes personalizadas
 # ----------------------------------------------------------------------------
@@ -184,3 +201,5 @@ volumes:
     name: slep-ollama-models
   backend-storage:
     name: slep-backend-storage
+  portainer-data:
+    name: slep-portainer-data
