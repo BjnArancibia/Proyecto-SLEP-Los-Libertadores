@@ -15,7 +15,7 @@ El sistema adopta una arquitectura desacoplada basada en contenedores ligeros y 
 - **Edge Gateway (`slep-gateway`):** Servidor perimetral Nginx no privilegiado que actúa como proxy inverso unificado, balanceando las peticiones a la API (`/api/`) y sirviendo la SPA de Angular (`/`).
 - **Frontend SPA (`slep-frontend`):** Aplicación construida en **Angular 22 LTS**, empaquetada mediante compilación multietapa sobre Nginx Alpine (~25 MB).
 - **Backend API (`slep-backend`):** API REST desarrollada en **Laravel 11/12 (PHP 8.3 Alpine)** con OPcache, soporte para PostgreSQL / MySQL y auditoría transaccional.
-- **Persistencia de Datos (`slep-database`):** Motor relacional **PostgreSQL 17 Alpine** aislado en la red interna con volumen persistente.
+- **Persistencia de Datos (`slep-database`):** Motor relacional **MySQL 8.0** aislado en la red interna con volumen persistente (`slep-mysql-data`).
 - **Asistente de IA (`slep-ollama`):** Motor de inferencia local oficial de **Ollama** con el modelo ligero `qwen2.5:1.5b` para clasificación patrimonial asistida bajo catálogo oficial.
 
 ```text
