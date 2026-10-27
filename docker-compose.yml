@@ -1,14 +1,9 @@
-# ==============================================================================
-# Docker Compose - SLEP Los Libertadores
-# Sistema de Gestión Patrimonial e Inventario (Licitación ID: 1305541-3-LE26)
-# ==============================================================================
 # Topología de 5 servicios:
 #   1. gateway  : Proxy inverso perimetral Nginx (Puerto 80 perimetral)
 #   2. frontend : SPA Angular 22 compilada en contenedor Nginx no privilegiado
 #   3. backend  : API REST Laravel 11/12 (PHP 8.3 Alpine)
-#   4. database : Persistencia relacional PostgreSQL 17 Alpine
+#   4. database : Persistencia relacional MySQL 8.0
 #   5. ollama   : Motor de inferencia para LLMs locales (qwen2.5:1.5b)
-# ==============================================================================
 
 services:
   # ----------------------------------------------------------------------------
@@ -79,11 +74,11 @@ services:
       APP_KEY: "${APP_KEY:-base64:c2xlcC1sb3MtbGliZXJ0YWRvcmVzLWFwcC1rZXkxMjM=}"
       APP_DEBUG: "${APP_DEBUG:-false}"
       APP_URL: "${APP_URL:-http://localhost}"
-      DB_CONNECTION: pgsql
+      DB_CONNECTION: mysql
       DB_HOST: database
-      DB_PORT: 5432
-      DB_DATABASE: "${DB_DATABASE:-inventario}"
-      DB_USERNAME: "${DB_USERNAME:-postgres}"
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-slep_db}"
+      DB_USERNAME: "${DB_USERNAME:-slep_user}"
       DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
       SESSION_DRIVER: database
       CACHE_STORE: database
@@ -111,27 +106,44 @@ services:
       start_period: 15s
 
   # ----------------------------------------------------------------------------
-  # 4. Base de Datos Relacional (PostgreSQL 17 Alpine)
-  # Aislada en red interna; no expone puertos al host en producción
+  # 4. Base de Datos Relacional (MySQL 8.0)
+  # Aislada en red interna; expuesta en loopback (127.0.0.1) solo para scripts locales de backup
   # ----------------------------------------------------------------------------
   database:
-    image: postgres:17.11-alpine3.23
+    image: mysql:8.0.40
     container_name: slep-database
     restart: unless-stopped
+    command:
+      - "--default-authentication-plugin=mysql_native_password"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    ports:
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
     environment:
-      POSTGRES_DB: "${DB_DATABASE:-inventario}"
-      POSTGRES_USER: "${DB_USERNAME:-postgres}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
+      MYSQL_DATABASE: "${DB_DATABASE:-slep_db}"
+      MYSQL_USER: "${DB_USERNAME:-slep_user}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-slep_root_secret_2026}"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/mysql
     networks:
       - slep-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-inventario}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "127.0.0.1",
+          "-u",
+          "${DB_USERNAME:-slep_user}",
+          "-p${DB_PASSWORD:-slep_secret_2026}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   # ----------------------------------------------------------------------------
   # 5. Servicio de Inteligencia Artificial (Ollama)
@@ -154,20 +166,20 @@ services:
       retries: 3
       start_period: 10s
 
-# ==============================================================================
+# ----------------------------------------------------------------------------
 # Redes personalizadas
-# ==============================================================================
+# ----------------------------------------------------------------------------
 networks:
   slep-net:
     driver: bridge
     name: slep-network
 
-# ==============================================================================
+# ----------------------------------------------------------------------------
 # Volúmenes persistentes
-# ==============================================================================
+# ----------------------------------------------------------------------------
 volumes:
   db-data:
-    name: slep-postgres-data
+    name: slep-mysql-data
   ollama-models:
     name: slep-ollama-models
   backend-storage:

@@ -28,10 +28,10 @@ La solución adopta una arquitectura desacoplada basada en microservicios y cont
      └───────────────────────────────┘  └───────┬──────────────────────┬────────┘
                                                 │                      │
                                    Persistencia │                      │ Inferencia IA
-                                   SQL (:5432)  ▼                      ▼ HTTP (:11434)
+                                   SQL (:3306)  ▼                      ▼ HTTP (:11434)
                                 ┌────────────────────────┐   ┌────────────────────────┐
                                 │ slep-database          │   │ slep-ollama            │
-                                │ PostgreSQL 17 Alpine   │   │ Ollama 0.40.7 Oficial  │
+                                │ MySQL 8.0              │   │ Ollama 0.40.7 Oficial  │
                                 │ Volumen: db-data       │   │ Volumen: ollama-models │
                                 └────────────────────────┘   └────────────────────────┘
 ```
@@ -45,7 +45,7 @@ La solución adopta una arquitectura desacoplada basada en microservicios y cont
 | **`gateway`** | Nginx Proxy Inverso | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `80:8080` (Host) | Punto perimetral único. Rutea el tráfico hacia frontend y backend, maneja compresión gzip y aísla la red interna. |
 | **`frontend`** | Angular 22 SPA | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `8080` (Interno) | Sirve los activos precompilados minificados. Maneja fallback a `index.html` para el router de Angular. |
 | **`backend`** | Laravel 11/12 API | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | Provee endpoints REST, control de acceso, trazabilidad auditable y orquesta la inferencia con Ollama. |
-| **`database`** | PostgreSQL Relacional | `postgres:17.11-alpine3.23` | `5432` (Interno) | Persistencia ACID de activos, kardex, bitácora y usuarios. No expone puertos al host por seguridad. |
+| **`database`** | MySQL Relacional | `mysql:8.0.40` | `127.0.0.1:3306` (Host loopback) | Persistencia ACID de activos, kardex, bitácora y usuarios. Enlace restringido a red Docker interna y loopback local para backups. |
 | **`ollama`** | Motor de LLM Local | `ollama/ollama:0.40.7` | `11434` (Interno) | Ejecuta inferencia local de lenguaje natural para sugerir categorías patrimoniales bajo catálogo formal. |
 
 ---
