@@ -24,6 +24,7 @@ import { TransaccionBitacora, ModuloBitacora } from "../models/bitacora.model";
 import { Router } from "@angular/router";
 import { FlujoAprobacionComponent } from "../flujo-aprobacion/flujo-aprobacion.component";
 import { BodegaComponent } from "../bodega/bodega.component";
+import { IaService, SugerenciaIaData } from "../services/ia.service";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 
@@ -45,6 +46,14 @@ export class RegistroActivoComponent
 {
   activoForm!: FormGroup;
   apiUrl = "/api/activos"; // Endpoint para guardar activos en el backend
+  private readonly fallbackApiUrl = "http://127.0.0.1:8000/api/activos";
+
+  // Estado del asistente de IA (Ollama)
+  categoriaSugeridaIa = signal<string>("Equipos computacionales — Notebooks y portátiles");
+  justificacionIa = signal<string>("Sugerencia automática para portátiles y notebooks institucionales.");
+  confianzaIa = signal<"alta" | "media" | "baja" | null>("alta");
+  atributosIa = signal<string[]>(["Portátil", "Educación"]);
+  categoriaAceptada = signal<boolean>(false);
 
   // Controla qué vista se muestra en el área principal manteniendo la misma sidebar
   opcionActiva = "Activos Fijos";
@@ -105,6 +114,7 @@ export class RegistroActivoComponent
     private authService: AuthService,
     private movimientosService: MovimientosService,
     private bitacoraService: BitacoraService,
+    public iaService: IaService,
     private router: Router,
   ) {
     super();
@@ -414,61 +424,118 @@ export class RegistroActivoComponent
     }
   }
 
+  // Solicitar sugerencia de categoría a Ollama
+  solicitarSugerenciaIa(): void {
+    const nombre = this.activoForm.get("nombre")?.value;
+    if (!nombre || nombre.trim().length < 2) {
+      alert("Por favor ingrese el nombre del bien para que la IA pueda sugerir una categoría.");
+      return;
+    }
+
+    this.iaService
+      .sugerirCategoria({
+        nombre: nombre.trim(),
+        marca_modelo: this.activoForm.get("marca_modelo")?.value || null,
+        estado_conservacion: this.estadoSeleccionado,
+        establecimiento: this.activoForm.get("establecimiento")?.value || null,
+      })
+      .subscribe((res) => {
+        if (res.success && res.data) {
+          this.categoriaSugeridaIa.set(res.data.categoria_sugerida);
+          this.justificacionIa.set(res.data.justificacion);
+          this.confianzaIa.set(res.data.confianza);
+          this.atributosIa.set(res.data.atributos_clave || []);
+          this.categoriaAceptada.set(false);
+        }
+      });
+  }
+
+  // Aceptar sugerencia de IA
+  aceptarSugerenciaIa(): void {
+    if (this.categoriaSugeridaIa()) {
+      this.categoriaAceptada.set(true);
+    }
+  }
+
+  // Descartar sugerencia de IA para usar clasificación manual
+  descartarSugerenciaIa(): void {
+    this.categoriaAceptada.set(false);
+    this.categoriaSugeridaIa.set("");
+    this.justificacionIa.set("");
+    this.confianzaIa.set(null);
+    this.atributosIa.set([]);
+  }
+
   guardarActivo() {
     if (this.activoForm.invalid) {
       alert("Por favor complete todos los campos obligatorios.");
       return;
     }
 
+    const categoriaFinal = this.categoriaAceptada()
+      ? this.categoriaSugeridaIa()
+      : this.categoriaSugeridaIa() || null;
+
     const payload = {
       ...this.activoForm.value,
       dependencia_sala: this.activoForm.value.dependencia,
       estado_conservacion: this.estadoSeleccionado,
-      categoria_sugerida_ia: "Equipos computacionales — Notebooks y portátiles",
+      categoria_sugerida_ia: categoriaFinal,
     };
 
-    this.http.post(this.apiUrl, payload).subscribe({
-      next: (res: any) => {
-        this.ultimoActivoGuardado = {
-          numero_patrimonial: payload.numero_patrimonial,
-          numero_serie: payload.numero_serie || "S/N",
-          custodio: payload.custodio || "—",
-        };
-        this.botonEtiquetaHabilitado = true;
-
-        // Registrar la transacción en la bitácora auditable
-        this.bitacoraService.registrarTransaccion({
-          folio: payload.numero_patrimonial,
-          modulo: "ACTIVOS",
-          accion: "Alta de Activo Fijo",
-          decision: "REGISTRADO",
-          justificacion:
-            "Incorporación de activo al inventario patrimonial institucional",
-          valores_anteriores: null,
-          valores_posteriores: {
+    const guardarEnApi = (url: string, reintentar: boolean = true) => {
+      this.http.post(url, payload).subscribe({
+        next: (res: any) => {
+          this.ultimoActivoGuardado = {
             numero_patrimonial: payload.numero_patrimonial,
             numero_serie: payload.numero_serie || "S/N",
-            nombre: payload.nombre,
-            marca_modelo: payload.marca_modelo,
-            estado_conservacion: payload.estado_conservacion,
-            establecimiento: payload.establecimiento,
-            dependencia_sala: payload.dependencia_sala,
-            custodio: payload.custodio,
-          },
-          usuario_nombre: this.currentUser.name,
-          usuario_perfil: this.currentUser.role,
-        });
+            custodio: payload.custodio || "—",
+          };
+          this.botonEtiquetaHabilitado = true;
 
-        alert("Activo guardado exitosamente!");
-        this.activoForm.reset({ establecimiento: "Bodega central SLEP" });
-      },
-      error: (err) => {
-        alert(
-          "Error al guardar activo: " +
-            (err.error?.message || "Error desconocido"),
-        );
-      },
-    });
+          // Registrar la transacción en la bitácora auditable
+          this.bitacoraService.registrarTransaccion({
+            folio: payload.numero_patrimonial,
+            modulo: "ACTIVOS",
+            accion: "Alta de Activo Fijo",
+            decision: "REGISTRADO",
+            justificacion:
+              "Incorporación de activo al inventario patrimonial institucional" +
+              (categoriaFinal ? ` (Categoría IA: ${categoriaFinal})` : ""),
+            valores_anteriores: null,
+            valores_posteriores: {
+              numero_patrimonial: payload.numero_patrimonial,
+              numero_serie: payload.numero_serie || "S/N",
+              nombre: payload.nombre,
+              marca_modelo: payload.marca_modelo,
+              estado_conservacion: payload.estado_conservacion,
+              establecimiento: payload.establecimiento,
+              dependencia_sala: payload.dependencia_sala,
+              custodio: payload.custodio,
+              categoria_sugerida_ia: categoriaFinal,
+            },
+            usuario_nombre: this.currentUser.name,
+            usuario_perfil: this.currentUser.role,
+          });
+
+          alert("Activo guardado exitosamente!");
+          this.activoForm.reset({ establecimiento: "Bodega central SLEP" });
+          this.categoriaAceptada.set(false);
+        },
+        error: (err) => {
+          if (reintentar && (err.status === 404 || err.status === 0)) {
+            guardarEnApi(this.fallbackApiUrl, false);
+            return;
+          }
+          alert(
+            "Error al guardar activo: " +
+              (err.error?.message || "Error desconocido"),
+          );
+        },
+      });
+    };
+
+    guardarEnApi(this.apiUrl, true);
   }
 
   abrirModal() {

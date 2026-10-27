@@ -40,6 +40,7 @@ class AssetController extends Controller
                 'establecimiento' => $asset->establecimiento,
                 'dependencia_sala' => $asset->dependencia_sala,
                 'custodio' => $asset->custodio,
+                'categoria_sugerida_ia' => $asset->categoria_sugerida_ia,
             ],
         ]);
 
@@ -65,6 +66,7 @@ class AssetController extends Controller
             'establecimiento' => $asset->establecimiento,
             'dependencia_sala' => $asset->dependencia_sala,
             'custodio' => $asset->custodio,
+            'categoria_sugerida_ia' => $asset->categoria_sugerida_ia,
         ];
 
         $asset->update($request->only([
@@ -74,7 +76,8 @@ class AssetController extends Controller
             'estado_conservacion',
             'establecimiento',
             'dependencia_sala',
-            'custodio'
+            'custodio',
+            'categoria_sugerida_ia',
         ]));
 
         $valoresPosteriores = [
@@ -86,6 +89,7 @@ class AssetController extends Controller
             'establecimiento' => $asset->establecimiento,
             'dependencia_sala' => $asset->dependencia_sala,
             'custodio' => $asset->custodio,
+            'categoria_sugerida_ia' => $asset->categoria_sugerida_ia,
         ];
 
         AuditoriaService::registrar([

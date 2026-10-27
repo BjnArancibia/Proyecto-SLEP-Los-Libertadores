@@ -161,17 +161,61 @@
             </div>
           </div>
         </div>
-        <div class="ai-row">
-          <div class="ai-ico">
-            <i class="ti ti-sparkles" aria-hidden="true"></i>
+        <!-- Sugerencia contextual de categoría mediante Ollama IA -->
+        <div class="ai-row" [class.ai-loading]="iaService.cargando()" [class.ai-accepted]="categoriaAceptada()" [class.ai-error]="iaService.errorIa()">
+          <div class="ai-ico" [class.spin]="iaService.cargando()">
+            <i class="ti" [class.ti-sparkles]="!iaService.cargando() && !iaService.errorIa()" [class.ti-loader-2]="iaService.cargando()" [class.ti-alert-triangle]="iaService.errorIa()" aria-hidden="true"></i>
           </div>
           <div style="flex: 1; min-width: 0">
-            <div class="ai-tag">Sugerencia Ollama IA</div>
-            <div class="ai-val">
-              Equipos computacionales — Notebooks y portátiles
+            <div class="ai-tag-line">
+              <span class="ai-tag">Sugerencia Ollama IA</span>
+              <span *ngIf="confianzaIa()" class="ai-badge" [ngClass]="'confianza-' + confianzaIa()">Confianza: {{ confianzaIa() | uppercase }}</span>
+              <span *ngIf="categoriaAceptada()" class="ai-badge badge-aprobada"><i class="ti ti-check"></i> Aplicada</span>
+            </div>
+            <div class="ai-val" *ngIf="!iaService.cargando() && !iaService.errorIa()">
+              <strong>{{ categoriaSugeridaIa() || 'Sin clasificar — Ingrese el nombre del bien y solicite sugerencia' }}</strong>
+              <div *ngIf="justificacionIa()" class="ai-justificacion">{{ justificacionIa() }}</div>
+              <div *ngIf="atributosIa().length > 0" class="ai-attrs">
+                <span *ngFor="let attr of atributosIa()" class="ai-pill">{{ attr }}</span>
+              </div>
+            </div>
+            <div class="ai-val ai-loading-txt" *ngIf="iaService.cargando()">
+              Analizando características del bien con el modelo local Ollama...
+            </div>
+            <div class="ai-val ai-error-txt" *ngIf="iaService.errorIa() && !iaService.cargando()">
+              {{ iaService.errorIa() }}
             </div>
           </div>
-          <button type="button" class="ai-btn">Aceptar</button>
+          <div class="ai-actions">
+            <button
+              type="button"
+              class="ai-btn ai-btn-suggest"
+              (click)="solicitarSugerenciaIa()"
+              [disabled]="iaService.cargando()"
+              title="Solicitar clasificación inteligente a Ollama según catálogo oficial"
+            >
+              <i class="ti ti-sparkles" aria-hidden="true"></i>
+              {{ categoriaSugeridaIa() ? 'Reconsultar' : 'Sugerir IA' }}
+            </button>
+            <button
+              type="button"
+              class="ai-btn ai-btn-accept"
+              *ngIf="categoriaSugeridaIa() && !categoriaAceptada() && !iaService.cargando()"
+              (click)="aceptarSugerenciaIa()"
+              title="Aceptar y asociar esta categoría oficial al activo"
+            >
+              <i class="ti ti-check" aria-hidden="true"></i> Aceptar
+            </button>
+            <button
+              type="button"
+              class="ai-btn ai-btn-dismiss"
+              *ngIf="categoriaAceptada()"
+              (click)="descartarSugerenciaIa()"
+              title="Descartar categoría y usar clasificación manual"
+            >
+              <i class="ti ti-x" aria-hidden="true"></i> Descartar
+            </button>
+          </div>
         </div>
       </section>
 
