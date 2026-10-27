@@ -47,6 +47,7 @@ La solución adopta una arquitectura desacoplada basada en microservicios y cont
 | **`backend`** | Laravel 11/12 API | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | Provee endpoints REST, control de acceso, trazabilidad auditable y orquesta la inferencia con Ollama. |
 | **`database`** | MySQL Relacional | `mysql:8.0.40` | `127.0.0.1:3306` (Host loopback) | Persistencia ACID de activos, kardex, bitácora y usuarios. Enlace restringido a red Docker interna y loopback local para backups. |
 | **`ollama`** | Motor de LLM Local | `ollama/ollama:0.40.7` | `11434` (Interno) | Ejecuta inferencia local de lenguaje natural para sugerir categorías patrimoniales bajo catálogo formal. |
+| **`monitoring`** | Portainer Community Edition | `portainer/portainer-ce:2.27.1-alpine` | `9000:9000` (Host) | Observabilidad visual en tiempo real de contenedores, consumo de CPU/RAM, salud y logs de eventos. |
 
 ---
 
