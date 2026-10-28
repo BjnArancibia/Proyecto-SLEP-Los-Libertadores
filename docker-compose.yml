@@ -39,6 +39,14 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          cpus: '0.10'
+          memory: 64M
 
   # ----------------------------------------------------------------------------
   # 2. Frontend SPA (Angular 22)
@@ -61,6 +69,14 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          cpus: '0.10'
+          memory: 64M
 
   # ----------------------------------------------------------------------------
   # 3. Microservicio 1: API de Usuarios y Autenticación (RF-01)
@@ -104,6 +120,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # ----------------------------------------------------------------------------
   # 4. Microservicio 2: API de Inventario, Activos, Kardex e IA (RF-02 y RF-04)
@@ -154,6 +178,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.25'
+          memory: 1536M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
 
   # ----------------------------------------------------------------------------
   # 5. Microservicio 3: API de Flujos y Auditoría (RF-03 y RF-05)
@@ -197,6 +229,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   # ----------------------------------------------------------------------------
   # 6. Base de Datos Relacional (MySQL 8.0)
@@ -237,6 +277,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 3072M
+        reservations:
+          cpus: '0.50'
+          memory: 1024M
 
   # ----------------------------------------------------------------------------
   # 7. Servicio de Inteligencia Artificial (Ollama)
@@ -258,6 +306,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.50'
+          memory: 5120M
+        reservations:
+          cpus: '1.50'
+          memory: 2048M
 
   # ----------------------------------------------------------------------------
   # 8. Servicio de Monitoreo y Observabilidad (Portainer CE)
@@ -275,6 +331,20 @@ services:
       - portainer-data:/data
     networks:
       - slep-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9000/api/system/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
 
 # ----------------------------------------------------------------------------
 # Redes personalizadas
