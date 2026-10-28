@@ -97,7 +97,7 @@ Para levantar el clúster completo con los 5 servicios:
    * Aplicación Web: [http://localhost](http://localhost)
    * Monitoreo de Salud: [http://localhost/api/health](http://localhost/api/health)
    * Estado del Asistente IA: [http://localhost/api/ia/estado](http://localhost/api/ia/estado)
-   * Panel de Monitoreo Portainer: [http://localhost:9000](http://localhost:9000)
+   * Panel de Monitoreo Portainer: [http://localhost/portainer/](http://localhost/portainer/) (o puerto `:9000`)
 
 Para más detalles sobre la arquitectura de contenedores, consulte [docs/arquitectura.md](./docs/arquitectura.md).
 

@@ -175,6 +175,7 @@ services:
     image: portainer/portainer-ce:2.27.1-alpine
     container_name: slep-monitoring
     restart: unless-stopped
+    command: --base-url /portainer
     ports:
       - "${PORTAINER_PORT:-9000}:9000"
     volumes:
