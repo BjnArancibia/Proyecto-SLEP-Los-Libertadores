@@ -112,10 +112,10 @@ fi
 # ------------------------------------------------------------------------------
 # 6. Construcción y orquestación con Docker Compose
 # ------------------------------------------------------------------------------
-log_info "Construyendo imágenes de contenedores (Frontend Angular, Backend Laravel, Gateway)..."
+log_info "Construyendo imágenes de contenedores (Gateway, Frontend y 3 Microservicios Backend)..."
 $COMPOSE build --pull
 
-log_info "Levantando el clúster de servicios (Gateway, Frontend, Backend, Database, Ollama)..."
+log_info "Levantando el clúster de 8 servicios (Gateway, Frontend, Usuarios, Inventario, Flujos, Database, Ollama, Portainer)..."
 $COMPOSE up -d --remove-orphans
 
 # ------------------------------------------------------------------------------

@@ -1,15 +1,17 @@
-# Topología de 6 servicios:
-#   1. gateway    : Proxy inverso perimetral Nginx (Puerto 80 perimetral)
-#   2. frontend   : SPA Angular 22 compilada en contenedor Nginx no privilegiado
-#   3. backend    : API REST Laravel 11/12 (PHP 8.3 Alpine)
-#   4. database   : Persistencia relacional MySQL 8.0
-#   5. ollama     : Motor de inferencia para LLMs locales (qwen2.5:1.5b)
-#   6. monitoring : Observabilidad y gestión visual con Portainer CE
+# Topología de 8 servicios (Arquitectura desacoplada de Microservicios):
+#   1. gateway            : API Gateway perimetral Nginx (Puerto 80 perimetral)
+#   2. frontend           : SPA Angular 22 compilada en contenedor Nginx no privilegiado
+#   3. backend-usuarios   : Microservicio de Identidad, Roles y Autenticación (RF-01)
+#   4. backend-inventario : Microservicio de Activos, Kardex e IA con Ollama (RF-02/RF-04)
+#   5. backend-flujos     : Microservicio de Solicitudes, Segregación y Auditoría (RF-03/RF-05)
+#   6. database           : Persistencia relacional MySQL 8.0
+#   7. ollama             : Motor de inferencia para LLMs locales (qwen2.5:1.5b)
+#   8. monitoring         : Observabilidad y gestión visual con Portainer CE
 
 services:
   # ----------------------------------------------------------------------------
-  # 1. Gateway perimetral (Proxy Inverso Nginx)
-  # Punto único de entrada al clúster: rutea / hacia frontend y /api/ hacia backend
+  # 1. Gateway perimetral (API Gateway Nginx)
+  # Punto único de entrada al clúster: rutea /, /api/auth/, /api/movimientos/, /api/
   # ----------------------------------------------------------------------------
   gateway:
     build:
@@ -23,7 +25,11 @@ services:
     depends_on:
       frontend:
         condition: service_healthy
-      backend:
+      backend-usuarios:
+        condition: service_healthy
+      backend-inventario:
+        condition: service_healthy
+      backend-flujos:
         condition: service_healthy
     networks:
       - slep-net
@@ -57,15 +63,58 @@ services:
       start_period: 5s
 
   # ----------------------------------------------------------------------------
-  # 3. Backend API (Laravel 11 / PHP 8.3)
-  # Lógica de negocio, bitácora auditable, Kardex y conector desacoplado con Ollama
+  # 3. Microservicio 1: API de Usuarios y Autenticación (RF-01)
+  # Control de acceso, login/logout, tokens Sanctum y perfiles diferenciados
   # ----------------------------------------------------------------------------
-  backend:
+  backend-usuarios:
+    build:
+      context: ./services/backend/api-usuarios
+      dockerfile: Dockerfile
+    image: slep/backend-usuarios:1.0.0
+    container_name: slep-api-usuarios
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      APP_NAME: "${APP_NAME:-SLEP-Usuarios}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_KEY: "${APP_KEY:-base64:c2xlcC1sb3MtbGliZXJ0YWRvcmVzLWFwcC1rZXkxMjM=}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL:-http://localhost}"
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-slep_db}"
+      DB_USERNAME: "${DB_USERNAME:-slep_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      AUTO_MIGRATE: "false"
+    volumes:
+      - backend-usuarios-storage:/var/www/html/storage
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - slep-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ----------------------------------------------------------------------------
+  # 4. Microservicio 2: API de Inventario, Activos, Kardex e IA (RF-02 y RF-04)
+  # Registro de bienes, existencias en tiempo real y clasificación asistida con Ollama
+  # ----------------------------------------------------------------------------
+  backend-inventario:
     build:
       context: ./services/backend/api-inventario
       dockerfile: Dockerfile
-    image: slep/backend:1.0.0
-    container_name: slep-backend
+    image: slep/backend-inventario:1.0.0
+    container_name: slep-api-inventario
     restart: unless-stopped
     expose:
       - "8000"
@@ -91,7 +140,7 @@ services:
       OLLAMA_TIMEOUT: "${OLLAMA_TIMEOUT:-60}"
       OLLAMA_CONNECT_TIMEOUT: "${OLLAMA_CONNECT_TIMEOUT:-3}"
     volumes:
-      - backend-storage:/var/www/html/storage
+      - backend-inventario-storage:/var/www/html/storage
     depends_on:
       database:
         condition: service_healthy
@@ -107,7 +156,50 @@ services:
       start_period: 15s
 
   # ----------------------------------------------------------------------------
-  # 4. Base de Datos Relacional (MySQL 8.0)
+  # 5. Microservicio 3: API de Flujos y Auditoría (RF-03 y RF-05)
+  # Solicitudes de movimientos, segregación de funciones y bitácora de transacciones
+  # ----------------------------------------------------------------------------
+  backend-flujos:
+    build:
+      context: ./services/backend/api-flujos
+      dockerfile: Dockerfile
+    image: slep/backend-flujos:1.0.0
+    container_name: slep-api-flujos
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      APP_NAME: "${APP_NAME:-SLEP-Flujos}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_KEY: "${APP_KEY:-base64:c2xlcC1sb3MtbGliZXJ0YWRvcmVzLWFwcC1rZXkxMjM=}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL:-http://localhost}"
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-slep_db}"
+      DB_USERNAME: "${DB_USERNAME:-slep_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      AUTO_MIGRATE: "false"
+    volumes:
+      - backend-flujos-storage:/var/www/html/storage
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - slep-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ----------------------------------------------------------------------------
+  # 6. Base de Datos Relacional (MySQL 8.0)
   # Aislada en red interna; expuesta en loopback (127.0.0.1) solo para scripts locales de backup
   # ----------------------------------------------------------------------------
   database:
@@ -147,7 +239,7 @@ services:
       start_period: 20s
 
   # ----------------------------------------------------------------------------
-  # 5. Servicio de Inteligencia Artificial (Ollama)
+  # 7. Servicio de Inteligencia Artificial (Ollama)
   # Modelo local para sugerencias de categorías de activos patrimoniales
   # ----------------------------------------------------------------------------
   ollama:
@@ -168,7 +260,7 @@ services:
       start_period: 10s
 
   # ----------------------------------------------------------------------------
-  # 6. Servicio de Monitoreo y Observabilidad (Portainer CE)
+  # 8. Servicio de Monitoreo y Observabilidad (Portainer CE)
   # Visualización gráfica de métricas de contenedores, CPU, RAM y logs en vivo
   # ----------------------------------------------------------------------------
   monitoring:
@@ -200,7 +292,11 @@ volumes:
     name: slep-mysql-data
   ollama-models:
     name: slep-ollama-models
-  backend-storage:
-    name: slep-backend-storage
+  backend-inventario-storage:
+    name: slep-inventario-storage
+  backend-usuarios-storage:
+    name: slep-usuarios-storage
+  backend-flujos-storage:
+    name: slep-flujos-storage
   portainer-data:
     name: slep-portainer-data
