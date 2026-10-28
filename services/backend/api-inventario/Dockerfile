@@ -28,7 +28,7 @@ RUN composer install \
 FROM php:8.3.35-cli-alpine3.23 AS runner
 
 LABEL maintainer="Equipo SLEP Los Libertadores"
-LABEL description="API REST Laravel 11/12 (PHP 8.3) con soporte PostgreSQL y MySQL"
+LABEL description="Microservicio de Inventario, Kardex e IA (RF-02/RF-04) - PHP 8.3 Alpine"
 
 # Instalar extensiones necesarias (PostgreSQL, MySQL, OPcache, PCNTL)
 # y eliminar paquetes de compilación para reducir la superficie de la imagen

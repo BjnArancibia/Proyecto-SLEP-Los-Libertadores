@@ -12,12 +12,14 @@ El sistema garantiza la continuidad operacional mediante una arquitectura de alt
 
 El sistema adopta una arquitectura desacoplada basada en contenedores ligeros y microservicios coordinados en la red privada `slep-net`:
 
-- **Edge Gateway (`slep-gateway`):** Servidor perimetral Nginx no privilegiado que actúa como proxy inverso unificado, balanceando las peticiones a la API (`/api/`) y sirviendo la SPA de Angular (`/`).
+- **API Gateway (`slep-gateway`):** Servidor perimetral Nginx no privilegiado que actúa como API Gateway unificado, enrutando peticiones a los 3 microservicios, sirviendo la SPA de Angular (`/`) y el panel de Portainer (`/portainer/`).
 - **Frontend SPA (`slep-frontend`):** Aplicación construida en **Angular 22 LTS**, empaquetada mediante compilación multietapa sobre Nginx Alpine (~25 MB).
-- **Backend API (`slep-backend`):** API REST desarrollada en **Laravel 11/12 (PHP 8.3 Alpine)** con OPcache, soporte para PostgreSQL / MySQL y auditoría transaccional.
+- **Microservicio Usuarios (`slep-api-usuarios`):** Servicio de autenticación, control de perfiles y emisión de credenciales Sanctum (RF-01).
+- **Microservicio Inventario (`slep-api-inventario`):** Gestión patrimonial, control de existencias en Kardex y clasificación asistida con Ollama (RF-02 y RF-04).
+- **Microservicio Flujos (`slep-api-flujos`):** Solicitudes de movimientos con segregación de funciones y bitácora histórica transaccional (RF-03 y RF-05).
 - **Persistencia de Datos (`slep-database`):** Motor relacional **MySQL 8.0** aislado en la red interna con volumen persistente (`slep-mysql-data`).
 - **Asistente de IA (`slep-ollama`):** Motor de inferencia local oficial de **Ollama** con el modelo ligero `qwen2.5:1.5b` para clasificación patrimonial asistida bajo catálogo oficial.
-- **Panel de Monitoreo (`slep-monitoring`):** Dashboard visual de métricas, salud y logs en tiempo real con **Portainer Community Edition (v2.27.1 Alpine)** en el puerto `:9000`.
+- **Panel de Monitoreo (`slep-monitoring`):** Dashboard visual de métricas, salud y logs en tiempo real con **Portainer Community Edition (v2.27.1 Alpine)** en `/portainer/` y puerto `:9000`.
 
 ```text
 proyecto-slep-los-libertadores/

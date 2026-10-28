@@ -2,38 +2,48 @@
 
 **Proyecto:** Sistema de Gestión Patrimonial e Inventario  
 **Licitación ID:** 1305541-3-LE26  
-**Rama:** `backend-inventario`
+**Rama:** `feat/backend-microservices-decoupling`
 
 ---
 
-## 1. Topología del Clúster de Contenedores
+## 1. Topología del Clúster de Contenedores (8 Servicios Desacoplados)
 
-La solución adopta una arquitectura desacoplada basada en microservicios y contenedores coordinados mediante **Docker Compose**, interconectados por una red puente aislada (`slep-net`).
+La solución adopta una arquitectura de microservicios coordinados mediante **Docker Compose**, interconectados por la red puente aislada (`slep-net`) y expuestos a través de un **API Gateway** unificado:
 
 ```text
                         [ Clientes Web / Navegadores ]
                                       │ HTTP (:80)
                                       ▼
              ┌──────────────────────────────────────────────────┐
-             │       slep-gateway (Nginx Unprivileged)          │
+             │       slep-gateway (Nginx API Gateway)           │
              │           Puerto perimetral :80 / :8080          │
-             └───────────────┬──────────────────┬───────────────┘
-                             │                  │
-                Ruta /       │                  │ Ruta /api/
-                (Frontend)   ▼                  ▼ (Backend API)
-     ┌───────────────────────────────┐  ┌───────────────────────────────────────┐
-     │  slep-frontend (Angular 22)   │  │    slep-backend (Laravel 11 / PHP 8.3)│
-     │  Nginx Alpine (:8080)         │  │    PHP-CLI Alpine (:8000)             │
-     │  Archivos estáticos SPA       │  │    Auditoría, Kardex y Lógica Negocio │
-     └───────────────────────────────┘  └───────┬──────────────────────┬────────┘
-                                                │                      │
-                                   Persistencia │                      │ Inferencia IA
-                                   SQL (:3306)  ▼                      ▼ HTTP (:11434)
-                                ┌────────────────────────┐   ┌────────────────────────┐
-                                │ slep-database          │   │ slep-ollama            │
-                                │ MySQL 8.0              │   │ Ollama 0.40.7 Oficial  │
-                                │ Volumen: db-data       │   │ Volumen: ollama-models │
-                                └────────────────────────┘   └────────────────────────┘
+             └──────┬───────────────┬────────────────┬──────────┘
+                    │               │                │
+            Ruta /  │   /api/auth/  │  /api/activos/ │  /api/movimientos/
+                    │   /api/user   │  /api/kardex/  │  /api/bitacora/
+                    ▼               ▼  /api/ia/      ▼
+        ┌──────────────────┐ ┌───────────────┐ ┌──────────────────┐
+        │  slep-frontend   │ │slep-api-usua. │ │ slep-api-flujos  │
+        │  Angular 22 SPA  │ │Roles, Auth    │ │Flujos y Bitácora │
+        │  Nginx (:8080)   │ │Sanctum (:8000)│ │Auditable (:8000) │
+        └──────────────────┘ └───────┬───────┘ └────────┬─────────┘
+                                     │                  │
+                    ┌────────────────┴──────────────────┼─────────────────┐
+                    │                                   │                 │
+                    │   ┌───────────────────────────┐   │                 │
+                    │   │    slep-api-inventario    │◄──┘                 │
+                    │   │    Activos, Kardex e IA   │                     │
+                    │   │    Laravel (:8000)        │                     │
+                    │   └─────────────┬─────────────┘                     │
+                    │                 │                                   │
+                    │    Persistencia │             Inferencia IA         │
+                    │     SQL (:3306) │             HTTP (:11434)         │
+                    │                 ▼                  ▼                │
+                    │      ┌────────────────────┐ ┌───────────────┐       │
+                    └─────►│   slep-database    │ │  slep-ollama  │◄──────┘
+                           │   MySQL 8.0        │ │  qwen2.5:1.5b │
+                           │   Vol: db-data     │ │  Vol: models  │
+                           └────────────────────┘ └───────────────┘
 ```
 
 ---
@@ -42,12 +52,14 @@ La solución adopta una arquitectura desacoplada basada en microservicios y cont
 
 | Servicio | Componente Tecnológico | Imagen Base | Puerto Expuesto | Rol Arquitectónico |
 | :--- | :--- | :--- | :--- | :--- |
-| **`gateway`** | Nginx Proxy Inverso | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `80:8080` (Host) | Punto perimetral único. Rutea el tráfico hacia frontend y backend, maneja compresión gzip y aísla la red interna. |
-| **`frontend`** | Angular 22 SPA | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `8080` (Interno) | Sirve los activos precompilados minificados. Maneja fallback a `index.html` para el router de Angular. |
-| **`backend`** | Laravel 11/12 API | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | Provee endpoints REST, control de acceso, trazabilidad auditable y orquesta la inferencia con Ollama. |
-| **`database`** | MySQL Relacional | `mysql:8.0.40` | `127.0.0.1:3306` (Host loopback) | Persistencia ACID de activos, kardex, bitácora y usuarios. Enlace restringido a red Docker interna y loopback local para backups. |
-| **`ollama`** | Motor de LLM Local | `ollama/ollama:0.40.7` | `11434` (Interno) | Ejecuta inferencia local de lenguaje natural para sugerir categorías patrimoniales bajo catálogo formal. |
-| **`monitoring`** | Portainer Community Edition | `portainer/portainer-ce:2.27.1-alpine` | `9000:9000` (Host) | Observabilidad visual en tiempo real de contenedores, consumo de CPU/RAM, salud y logs de eventos. |
+| **`gateway`** | Nginx API Gateway | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `80:8080` (Host) | Punto perimetral único. Rutea el tráfico hacia frontend, los 3 microservicios y Portainer. |
+| **`frontend`** | Angular 22 SPA | `nginxinc/nginx-unprivileged:1.28-alpine3.23` | `8080` (Interno) | Sirve los activos precompilados minificados. Maneja fallback a `index.html` para el router. |
+| **`backend-usuarios`** | API de Identidad y Roles | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | **Microservicio 1 (RF-01):** Autenticación, emisión de tokens Sanctum y perfiles de usuarios. |
+| **`backend-inventario`**| API de Inventario e IA | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | **Microservicio 2 (RF-02/RF-04):** Activos fijos, stock en bodega, Kardex e integración con Ollama. |
+| **`backend-flujos`** | API de Flujos y Auditoría | `php:8.3.35-cli-alpine3.23` | `8000` (Interno) | **Microservicio 3 (RF-03/RF-05):** Solicitudes con segregación de funciones y bitácora histórica. |
+| **`database`** | MySQL Relacional | `mysql:8.0.40` | `127.0.0.1:3306` (Host loopback) | Persistencia ACID relacional de activos, kardex, bitácora y usuarios. Enlace interno seguro. |
+| **`ollama`** | Motor de LLM Local | `ollama/ollama:0.40.7` | `11434` (Interno) | Ejecuta inferencia local de lenguaje natural para sugerir categorías patrimoniales oficiales. |
+| **`monitoring`** | Portainer CE | `portainer/portainer-ce:2.27.1-alpine` | `9000:9000` (Host) / `/portainer/` | Observabilidad visual en tiempo real de contenedores, consumo de CPU/RAM, salud y logs. |
 
 ---
 
