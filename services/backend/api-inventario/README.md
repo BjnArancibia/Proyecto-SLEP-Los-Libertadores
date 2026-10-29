@@ -1,69 +1,46 @@
-# API Backend Inventario - SLEP Los Libertadores
+# Microservicio 2: API de Inventario, Kardex e IA (`slep-api-inventario`)
 
-Esta es la API construida en Laravel 11 para manejar la lógica de inventario, stock y flujos de aprobación. Reemplaza los datos de prueba (mocks) que se estaban usando temporalmente en el frontend.
+**Proyecto:** Sistema de Gestión Patrimonial e Inventario — SLEP Los Libertadores  
+**Cobertura Funcional:** **RF-02** (Registro de activos y clasificación asistida por IA) y **RF-04** (Control de stock y Kardex)  
+**Stack:** Laravel 11/12 (PHP 8.3 Alpine + Conector HTTP Ollama)
 
-## Cómo levantar esto localmente
+---
 
-Si acabas de clonar el repositorio o descargar cambios, asegúrate de correr:
+## Responsabilidad Arquitectónica
+
+Este microservicio administra el catálogo patrimonial de activos fijos, el libro mayor de existencias en bodega (**Kardex**) y la integración desacoplada con el motor de Inteligencia Artificial local (**Ollama** con `qwen2.5:1.5b`) validada contra el catálogo oficial cerrado ([config/categorias_activos.php](./config/categorias_activos.php)). Asimismo, es el encargado de ejecutar las migraciones automáticas de la base de datos (`AUTO_MIGRATE=true`) al iniciar el clúster.
+
+---
+
+## Ejecución en Desarrollo Local
 
 ```bash
+cd services/backend/api-inventario
 composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate:fresh --seed
-php artisan serve
+php artisan serve --port=8000
 ```
 
-La API quedará levantada por defecto en `http://127.0.0.1:8000`.
-
 ---
 
-## Cuentas de Prueba (Seeders)
+## Endpoints Expuestos (`routes/api.php`)
 
-El comando `--seed` crea cuentas predefinidas para que no tengas que registrarte manualmente y puedas probar los diferentes roles del sistema. La contraseña para todos es **`password123`**:
+### 📦 Activos Patrimoniales (RF-02)
+- `GET /api/activos`: Retorna el listado completo de bienes y activos fijos registrados.
+- `POST /api/activos`: Registra un nuevo activo patrimonial y genera traza de auditoría.
+- `GET /api/activos/{id}`: Obtiene el detalle de un activo específico.
 
-- **Solicitante:** `sol@slep.cl` (Escuela Los Andes)
-- **Aprobador:** `apro@slep.cl` (Escuela Los Andes)
-- **Encargado de Bodega:** `bod@slep.cl` (Bodega Central SLEP)
-- **Administrador:** `admin@slep.cl` (Administración Central)
+### 🤖 Clasificación Asistida por IA — Ollama (RF-02)
+- `POST /api/ia/sugerir-categoria`: Recibe `{ "nombre": "...", "descripcion": "..." }` y consulta a Ollama con esquema JSON estricto, retornando categoría oficial, justificación, nivel de confianza y atributos sugeridos.
+- `GET /api/ia/estado`: Verifica conectividad en vivo con el contenedor `slep-ollama` y disponibilidad del modelo.
+- `GET /api/ia/categorias`: Retorna el catálogo oficial cerrado de categorías y subcategorías SLEP.
 
----
+### 📊 Kardex y Control de Stock (RF-04)
+- `GET /api/kardex`: Obtiene el historial de entradas, salidas, ajustes y transferencias de stock.
+- `POST /api/kardex`: Registra un nuevo movimiento de stock en bodega.
+- `POST /api/kardex/reset`: Restaura los registros de demostración del Kardex.
 
-## Resumen de Endpoints Disponibles
-
-Todas las rutas empiezan con `/api/`. Todas (excepto el login) requieren enviar el token en el header `Authorization: Bearer <tu-token>`.
-
-### 🔑 Autenticación
-- `POST /api/auth/login`
-  - **Body:** `{ "email": "admin@slep.cl", "password": "password123" }`
-  - **Respuesta:** Retorna el `token` de acceso y los datos del usuario.
-- `POST /api/auth/logout`
-  - Cierra la sesión y revoca el token del usuario actual.
-- `GET /api/user`
-  - Retorna los datos del usuario logueado en base a su token.
-
-### 📦 Activos
-- `GET /api/activos`
-  - Trae el listado completo de activos del sistema.
-- `POST /api/activos`
-  - Crea un nuevo activo (requiere permisos).
-- `GET /api/activos/{id}`
-  - Trae el detalle de un activo específico.
-
-### 🔄 Movimientos (Flujo de Aprobaciones)
-- `GET /api/movimientos`
-  - Retorna todas las solicitudes de movimientos (bajas, traslados) incluyendo la **bitácora** de cada una (historial de acciones).
-- `POST /api/movimientos`
-  - Crea una solicitud de movimiento nueva y añade automáticamente el primer paso a la bitácora usando el usuario autenticado. 
-  - **Body esperado:** `tipo` (TRASLADO|BAJA), `activo_codigo`, `activo_nombre`, `origen`, `destino`, `justificacion` (opcional).
-
-### 📊 Kardex (Control de Stock)
-- `GET /api/kardex`
-  - Trae todo el historial de movimientos de stock.
-- `POST /api/kardex`
-  - Registra una nueva entrada en el kardex. 
-  - **Body esperado:** `activo_codigo`, `activo_nombre`, `fecha_registro`, `tipo_movimiento`, `origen_destino`, `responsable`, `estado_stock`, etc.
-
----
-
-> **Nota para el equipo Frontend:** El formato de los datos que devuelve la API de Login, Movimientos y Kardex está alineado directamente con las interfaces y los servicios de Angular que se configuraron recientemente. Ya pueden cambiar de `localStorage` al `HttpClient` real.
+### 🩺 Salud (RNF-07)
+- `GET /api/health`: Reporta `"service": "api-inventario"`, estado de conexión a MySQL y hostname del contenedor.
