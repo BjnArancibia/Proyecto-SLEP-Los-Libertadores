@@ -20,6 +20,8 @@ services:
     image: slep/gateway:1.0.0
     container_name: slep-gateway
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "${GATEWAY_PORT:-80}:8080"
     depends_on:
@@ -59,6 +61,8 @@ services:
     image: slep/frontend:1.0.0
     container_name: slep-frontend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     expose:
       - "8080"
     networks:
@@ -89,6 +93,8 @@ services:
     image: slep/backend-usuarios:1.0.0
     container_name: slep-api-usuarios
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     expose:
       - "8000"
     environment:
@@ -140,6 +146,8 @@ services:
     image: slep/backend-inventario:1.0.0
     container_name: slep-api-inventario
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     expose:
       - "8000"
     environment:
@@ -198,6 +206,8 @@ services:
     image: slep/backend-flujos:1.0.0
     container_name: slep-api-flujos
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     expose:
       - "8000"
     environment:
@@ -246,6 +256,8 @@ services:
     image: mysql:8.0.40
     container_name: slep-database
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     command:
       - "--default-authentication-plugin=mysql_native_password"
       - "--character-set-server=utf8mb4"
