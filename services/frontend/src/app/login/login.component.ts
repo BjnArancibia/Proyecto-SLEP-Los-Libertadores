@@ -53,13 +53,13 @@ export class LoginComponent {
       const { email, password } = this.loginForm.value;
       await this.authService.login(email, password);
 
-      this.router.navigate(["/registro-activo"]); // login exitoso: redirigimos a la página principal
+      this.router.navigate(["/panel"]); // login exitoso: redirigimos al panel general
     } catch (error: unknown) {
       if (error instanceof Error) {
         this.mensajeError.set(error.message); // login fallido: mostramos el mensaje de error
       } else {
         this.mensajeError.set(
-          "Ocurrió un error inesperado. Intenta nuevamente.",
+          "Credenciales inválidas. Compruebe correo y contraseña.",
         );
       }
     } finally {

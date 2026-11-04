@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     rol VARCHAR(50) NOT NULL DEFAULT 'SOLICITANTE', -- Admin, encargado_bodega, solicitante, aprobador
     cargo VARCHAR(255) NULL,                        
+    establecimiento_id INTEGER NULL,
     establecimiento_nombre VARCHAR(255) NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL

@@ -56,7 +56,7 @@ export class RegistroActivoComponent
   categoriaAceptada = signal<boolean>(false);
 
   // Controla qué vista se muestra en el área principal manteniendo la misma sidebar
-  opcionActiva = "Activos Fijos";
+  opcionActiva = "Panel";
 
   // Estado de la modal y del botón de etiqueta
   mostrarModal = false;
@@ -100,8 +100,8 @@ export class RegistroActivoComponent
   mostrarMenuUsuario = false;
 
   navItems = [
-    { label: "Panel", icon: "ti ti-layout-dashboard", active: false },
-    { label: "Activos Fijos", icon: "ti ti-package", active: true },
+    { label: "Panel", icon: "ti ti-layout-dashboard", active: true },
+    { label: "Activos Fijos", icon: "ti ti-package", active: false },
     { label: "Bodega", icon: "ti ti-building-warehouse", active: false },
     { label: "Solicitudes", icon: "ti ti-arrow-transfer-up", active: false },
     { label: "Aprobaciones", icon: "ti ti-checklist", active: false },
@@ -374,8 +374,10 @@ export class RegistroActivoComponent
       this.opcionActiva = "Solicitudes";
     } else if (currentUrl.includes("/bitacora")) {
       this.opcionActiva = "Bitácora";
-    } else {
+    } else if (currentUrl.includes("/registro-activo")) {
       this.opcionActiva = "Activos Fijos";
+    } else {
+      this.opcionActiva = "Panel";
     }
 
     this.navItems.forEach((item) => {

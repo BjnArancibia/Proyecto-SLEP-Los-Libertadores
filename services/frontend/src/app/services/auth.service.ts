@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 
@@ -100,6 +100,9 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<void> {
+    const MENSAJE_ERROR_GENERICO =
+      "Credenciales inválidas. Compruebe correo y contraseña.";
+
     try {
       // Intentamos con el backend real de Laravel
       const respuesta = await firstValueFrom(
@@ -109,16 +112,26 @@ export class AuthService {
         }),
       );
       this.guardarSesion(respuesta.token, respuesta.usuario);
-    } catch (error) {
-      // Si el backend no está disponible o las credenciales coinciden con un mock, permitimos login mock
+    } catch (error: unknown) {
+      // Si el servidor respondió con error de autenticación (401 o 422), rechazar tajantemente
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 401 || error.status === 422) {
+          throw new Error(MENSAJE_ERROR_GENERICO);
+        }
+      }
+
+      // Modo contingencia / demostración offline (backend inalcanzable por fallo de red o clúster apagado)
+      // Solo se permite si el correo existe Y la contraseña ingresada coincide estrictamente con la estándar ("password123")
       const mock = USUARIOS_MOCK.find(
         (u) => u.email.toLowerCase() === email.toLowerCase(),
       );
-      if (mock) {
+      if (mock && password === "password123") {
         this.guardarSesion(`mock-token-${mock.id}`, mock);
         return;
       }
-      throw error;
+
+      // Si las credenciales no coinciden o no es un usuario autorizado, rechazar con mensaje genérico
+      throw new Error(MENSAJE_ERROR_GENERICO);
     }
   }
 

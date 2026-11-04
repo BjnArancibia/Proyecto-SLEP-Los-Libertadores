@@ -23,6 +23,6 @@ export const publicGuard: CanActivateFn = () => {
     return true;
   }
 
-  // Ya tiene sesión ->  mandamos directo al panel principal
-  return router.createUrlTree(["/registro-activo"]);
+  // Ya tiene sesión ->  mandamos directo al panel general
+  return router.createUrlTree(["/panel"]);
 };
