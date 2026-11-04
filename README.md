@@ -78,13 +78,13 @@ proyecto-slep-los-libertadores/
 - **Generación de Etiquetas:** Modal con generación dinámica de códigos QR y códigos de barras (`Code128`).
 - **Bitácora Auditable (RF-05):** Trazabilidad histórica completa de transacciones, valores anteriores/posteriores y exportación CSV.
 
-### Arquitectura Backend Desacoplada (3 Microservicios Laravel 11/12) y DevOps
+### Arquitectura Backend Desacoplada (3 Microservicios Laravel 11/12)
 
 - **Desacoplamiento en Microservicios:** Separación del backend en tres contenedores independientes (`slep-api-usuarios`, `slep-api-inventario`, `slep-api-flujos`) enrutados transparentemente por el API Gateway Nginx.
 - **Integración con Ollama:** Conector HTTP desacoplado en `api-inventario` con control de timeouts, esquema JSON estricto y validación contra catálogo oficial ([config/categorias_activos.php](./services/backend/api-inventario/config/categorias_activos.php)).
 - **Resiliencia Operacional:** Manejo de excepciones de IA (`503 Service Unavailable`, `502 Bad Gateway`) que garantizan que el inventario siga operando manualmente si Ollama no está disponible.
 - **Cuotas de Recursos y Gobernanza:** Límites máximos (`limits`) y reservas mínimas (`reservations`) de CPU y memoria RAM definidos por contenedor en [docker-compose.yml](./docker-compose.yml).
-- **Observabilidad y Monitoreo (RNF-02):** Endpoints `/api/health` por microservicio y panel visual **Portainer CE** integrado en `/portainer/`.
+- **Observabilidad y Monitoreo:** Endpoints `/api/health` por microservicio y panel visual **Portainer CE** integrado en `/portainer/`.
 
 ---
 
