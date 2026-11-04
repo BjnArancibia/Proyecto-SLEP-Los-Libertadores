@@ -159,7 +159,9 @@ export class FlujoAprobacionComponent {
       item.active = item.label === selectedLabel;
     });
 
-    if (selectedLabel === "Activos Fijos" || selectedLabel === "Panel") {
+    if (selectedLabel === "Panel") {
+      this.router.navigate(["/panel"]);
+    } else if (selectedLabel === "Activos Fijos") {
       this.router.navigate(["/registro-activo"]);
     } else if (
       selectedLabel === "Aprobaciones" ||

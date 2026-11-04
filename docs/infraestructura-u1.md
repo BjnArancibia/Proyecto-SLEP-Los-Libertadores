@@ -27,9 +27,9 @@ La infraestructura está desplegada en **Google Cloud Platform (Compute Engine)*
                          │ HTTP (80)
                          ▼
         ┌────────────────────────────────────────────────────────┐
-        │  VM 1 (vm-app-principal - 34.176.114.6)               │
+        │  VM 1 (vm-app-principal - 34.176.114.6)                │
         │                                                        │
-        │  [ Nginx Proxy Inverso & Balanceador de Carga ]         │
+        │  [ Nginx Proxy Inverso & Balanceador de Carga ]        │
         │     ├── Servir SPA Angular (/dist/...)                 │
         │     └── Balanceador Upstream (/api/)                   │
         └───────────────┬────────────────────────┬───────────────┘
