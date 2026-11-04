@@ -47,4 +47,4 @@ La contraseña común para todas las cuentas predefinidas es **`password123`**:
 - `POST /api/auth/logout` *(Requiere header `Authorization: Bearer <token>`)*
   - Revoca el token de acceso activo.
 - `GET /api/health`
-  - Endpoint de observabilidad (RNF-07) que reporta `"service": "api-usuarios"` y el estado de conexión con MySQL.
+  - Endpoint de observabilidad y disponibilidad (RNF-02) que reporta `"service": "api-usuarios"` y el estado de conexión con MySQL.

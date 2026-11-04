@@ -42,5 +42,5 @@ php artisan serve --port=8000
 - `POST /api/kardex`: Registra un nuevo movimiento de stock en bodega.
 - `POST /api/kardex/reset`: Restaura los registros de demostración del Kardex.
 
-### 🩺 Salud (RNF-07)
+### 🩺 Salud (RNF-02)
 - `GET /api/health`: Reporta `"service": "api-inventario"`, estado de conexión a MySQL y hostname del contenedor.

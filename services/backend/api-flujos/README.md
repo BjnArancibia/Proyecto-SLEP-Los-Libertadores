@@ -38,5 +38,5 @@ php artisan serve --port=8002
 - `POST /api/bitacora`: Registra un nuevo evento de auditoría.
 - `POST /api/bitacora/reset`: Restaura los eventos iniciales de demostración.
 
-### 🩺 Salud (RNF-07)
+### 🩺 Salud (RNF-02)
 - `GET /api/health`: Reporta `"service": "api-flujos"`, estado de conexión a MySQL y hostname del contenedor.

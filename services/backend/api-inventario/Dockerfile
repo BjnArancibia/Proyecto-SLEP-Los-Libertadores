@@ -80,7 +80,7 @@ USER www-data
 # Puerto del servidor de aplicación
 EXPOSE 8000
 
-# Comprobación de salud mediante el endpoint de monitoreo formal (RNF-07)
+# Comprobación de salud mediante el endpoint de monitoreo formal (RNF-02)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -qO- http://localhost:8000/api/health || exit 1
 
