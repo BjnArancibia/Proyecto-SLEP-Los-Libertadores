@@ -104,8 +104,8 @@ services:
       APP_DEBUG: "${APP_DEBUG:-false}"
       APP_URL: "${APP_URL:-http://localhost}"
       DB_CONNECTION: mysql
-      DB_HOST: database
-      DB_PORT: 3306
+      DB_HOST: "${DB_HOST:-database}"
+      DB_PORT: "${DB_PORT:-3306}"
       DB_DATABASE: "${DB_DATABASE:-slep_db}"
       DB_USERNAME: "${DB_USERNAME:-slep_user}"
       DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
@@ -157,8 +157,8 @@ services:
       APP_DEBUG: "${APP_DEBUG:-false}"
       APP_URL: "${APP_URL:-http://localhost}"
       DB_CONNECTION: mysql
-      DB_HOST: database
-      DB_PORT: 3306
+      DB_HOST: "${DB_HOST:-database}"
+      DB_PORT: "${DB_PORT:-3306}"
       DB_DATABASE: "${DB_DATABASE:-slep_db}"
       DB_USERNAME: "${DB_USERNAME:-slep_user}"
       DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
@@ -217,8 +217,8 @@ services:
       APP_DEBUG: "${APP_DEBUG:-false}"
       APP_URL: "${APP_URL:-http://localhost}"
       DB_CONNECTION: mysql
-      DB_HOST: database
-      DB_PORT: 3306
+      DB_HOST: "${DB_HOST:-database}"
+      DB_PORT: "${DB_PORT:-3306}"
       DB_DATABASE: "${DB_DATABASE:-slep_db}"
       DB_USERNAME: "${DB_USERNAME:-slep_user}"
       DB_PASSWORD: "${DB_PASSWORD:-slep_secret_2026}"
@@ -263,7 +263,7 @@ services:
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
     ports:
-      - "127.0.0.1:${DB_PORT:-3306}:3306"
+      - "${DB_BIND_IP:-0.0.0.0}:${DB_PORT:-3306}:3306"
     environment:
       MYSQL_DATABASE: "${DB_DATABASE:-slep_db}"
       MYSQL_USER: "${DB_USERNAME:-slep_user}"
